@@ -26,9 +26,23 @@ inventory_dict = {
     "C01-001-01-17": '123-135345v',
     "C01-001-01-18": '123-135345w',
     "C01-001-01-19": '123-135345x',
-    "C01-001-01-20": '123-135345y'
+    "C01-001-01-20": '123-135345y',
+    "C01-001-02-11": '123-135345p',
+    "C01-001-02-12": '123-135345q',
+    "C01-001-02-13": '123-135345r',
+    "C01-001-02-14": '123-135345s',
+    "C01-001-02-15": '123-135345t',
+    "C01-001-02-16": '123-135345u',
+    "C01-001-02-17": '123-135345v',
+    "C01-001-02-18": '123-135345w',
+    "C01-001-02-19": '123-135345x',
+    "C01-001-02-20": '123-135345y'
 }
 
+
+# inventory_dict = {
+#     "C01-001-01-01": '123-135345f'
+# }
 
 class BarcodeGenerator:
     def __init__(self, width_inches, height_inches, dpi, inventory, folder):
@@ -63,7 +77,7 @@ class BarcodeGenerator:
             image = Image.open(jpeg_filename)
             image = image.resize((width_pixels, height_pixels))
 
-            self.draw(image, 30, location)
+            self.draw(image, 50, location)
 
             png_filename = f'{self.folder}/{location.replace("-", "")}.png'
 
@@ -72,15 +86,15 @@ class BarcodeGenerator:
             os.remove(jpeg_filename)
 
 
-generator = BarcodeGenerator(width_inches=1.5, height_inches=1.0, dpi=300, inventory=inventory_dict, folder="images")
+# generator = BarcodeGenerator(width_inches=2.0, height_inches=1.0, dpi=600, inventory=inventory_dict, folder="images")
 
-generator.generate_image()
+# generator.generate_image()
 
-label_width = 200 
-label_height = 180  
-gap = 0.25  
-rows = 4
-columns = 5
+label_width = 180
+label_height = 80  
+gap = 30 
+rows = 10
+columns = 3
 
 total_width = int((label_width + gap) * columns)
 total_height = int((label_height + gap) * rows)
