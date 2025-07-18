@@ -74,4 +74,19 @@ def create_app(config_name='development'):
 if __name__ == '__main__':
     env = os.getenv('FLASK_ENV', 'development')
     app = create_app(env)
-    app.run(debug=(env == 'development'))
+    
+    port = int(os.environ.get('PORT', 5000))
+    
+    if env == 'production':
+        # Production settings
+        app.run(
+            host='0.0.0.0',
+            port=port,
+            debug=False
+        )
+    else:
+        app.run(
+            host='0.0.0.0',  # Still need 0.0.0.0 for Railway
+            port=port,
+            debug=True
+        )
