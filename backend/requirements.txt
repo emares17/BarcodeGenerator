@@ -6,4 +6,4 @@ supabase==1.0.4
 Pillow==10.0.0
 python-barcode==0.13.1
 werkzeug==2.3.7
-tus-py-client
+git+https://github.com/tzengyuxio/tus-py-client.git
