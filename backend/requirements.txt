@@ -1,0 +1,10 @@
+Flask==2.3.3
+Flask-CORS==4.0.0
+Pillow==10.0.1
+python-barcode==0.15.1
+pandas==2.1.1
+openpyxl==3.1.2
+xlrd==2.0.1
+Werkzeug==2.3.7
+memory-profiler==0.61.0
+firebase-admin==6.3.0
