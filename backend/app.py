@@ -71,6 +71,14 @@ def create_app(config_name='development'):
     
     return app
 
+@app.route('/')
+def health():
+    return {'status': 'healthy', 'message': 'Label Generator API'}, 200
+
+@app.route('/health')
+def health_check():
+    return {'status': 'ok'}, 200
+
 if __name__ == '__main__':
     env = os.getenv('FLASK_ENV', 'development')
     app = create_app(env)
