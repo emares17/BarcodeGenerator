@@ -75,7 +75,8 @@ if __name__ == '__main__':
     env = os.getenv('FLASK_ENV', 'development')
     app = create_app(env)
     
-    port = int(os.environ.get('PORT', 5000))
+    port_env = os.environ.get('PORT')
+    port = int(port_env) if port_env else 5000
     
     if env == 'production':
         # Production settings
@@ -86,7 +87,7 @@ if __name__ == '__main__':
         )
     else:
         app.run(
-            host='0.0.0.0',  # Still need 0.0.0.0 for Railway
+            host='0.0.0.0',  
             port=port,
             debug=True
         )
