@@ -61,11 +61,12 @@ class DevelopmentConfig(Config):
     SESSION_COOKIE_SECURE = False
 
 class ProductionConfig(Config):
+    DEBUG = False
     SESSION_COOKIE_SECURE = True
     
     # Production CORS; To be updated**
     CORS_CONFIG = {
-        'origins': [os.getenv('FRONTEND_URL', 'https://yourdomain.com')],
+        'origins': [os.getenv('FRONTEND_URL', 'http://localhost:5173')],
         'supports_credentials': True,
         'allow_headers': ['Content-Type', 'Authorization'],
         'methods': ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
