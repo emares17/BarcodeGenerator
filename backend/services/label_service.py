@@ -70,7 +70,7 @@ def process_label_file(file, user_id, secure_filename):
             len(inventory)
         )
         
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
             futures = [
                 executor.submit(
                     generate_barcode_worker, 
@@ -80,6 +80,18 @@ def process_label_file(file, user_id, secure_filename):
                 for location, (part, unit) in inventory.items()
             ]
             concurrent.futures.wait(futures)
+
+        print(f"🔍 Executor completed")
+        print(f"🔍 Checking for generated barcodes...")
+
+        # Check if any barcode images were created:
+        image_folder = current_app.config['IMAGE_FOLDER']
+        if os.path.exists(image_folder):
+            barcode_files = os.listdir(image_folder)
+            print(f"🔍 Barcode files generated: {len(barcode_files)}")
+            print(f"🔍 First few files: {barcode_files[:5] if barcode_files else 'NONE'}")
+        else:
+            print(f"🔍 IMAGE FOLDER DOESN'T EXIST: {image_folder}")
 
         barcode_time = time.time()
         barcode_duration = barcode_time - start_time
