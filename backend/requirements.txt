@@ -7,3 +7,4 @@ Pillow==10.0.0
 python-barcode==0.13.1
 werkzeug==2.3.7
 tuspy  
+gunicorn 
