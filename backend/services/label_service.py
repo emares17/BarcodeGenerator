@@ -70,7 +70,7 @@ def process_label_file(file, user_id, secure_filename):
             len(inventory)
         )
         
-        with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = [
                 executor.submit(
                     generate_barcode_worker, 
