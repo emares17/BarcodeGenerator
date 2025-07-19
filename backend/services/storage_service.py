@@ -82,7 +82,7 @@ def upload_files_to_storage(user_id, user_sheet_id, files_data):
         uploaded_files = []
         errors = []
         
-        max_workers = min(4, len(files_data))  
+        max_workers = min(4, max(1, len(files_data))) 
         
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             # Submit all upload tasks
