@@ -70,7 +70,10 @@ def process_label_file(file, user_id, secure_filename):
             len(inventory)
         )
         
-        with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+        # Use ThreadPoolExecutor (works in Docker) with thread-safe barcode generation:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            print(f"🔍 Starting ThreadPoolExecutor with {max_workers} workers...")
+    
             futures = [
                 executor.submit(
                     generate_barcode_worker, 
@@ -79,7 +82,10 @@ def process_label_file(file, user_id, secure_filename):
                 )
                 for location, (part, unit) in inventory.items()
             ]
+    
+            print(f"🔍 Submitted {len(futures)} tasks, waiting for completion...")
             concurrent.futures.wait(futures)
+            print(f"🔍 ThreadPool execution completed")
 
         print(f"🔍 Executor completed")
         print(f"🔍 Checking for generated barcodes...")
