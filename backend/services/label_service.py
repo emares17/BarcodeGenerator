@@ -17,18 +17,28 @@ def generate_barcode_worker(location, part, unit, folder):
     return f"Generated: {location}"
 
 def process_label_file(file, user_id, secure_filename):
+
+    print(f"Starting process_label_file for user {user_id}")
+
     # Save uploaded file
     ext = os.path.splitext(secure_filename)[1]
     saved_name = f"{uuid.uuid4().hex}{ext}"
     filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], saved_name)
+
+    print(f"Saving file to: {filepath}")
+
     file.save(filepath)
+
+    print(f"File saved successfully")
     
     try:
         # Parse file
         if secure_filename.endswith(('.xlsx', '.xls')):
+            print(f"Starting file parsing...")
             df = pd.read_excel(filepath, header=None)
         else:
             df = pd.read_csv(filepath, header=None)
+        print(f"File parsed successfully, shape: {df.shape}")
         
         # Validate and process data
         inventory = {}
@@ -71,9 +81,6 @@ def process_label_file(file, user_id, secure_filename):
             ]
             concurrent.futures.wait(futures)
 
-        print(f"Barcode generation completed")
-        print(f"Image folder exists: {os.path.exists(current_app.config['IMAGE_FOLDER'])}")
-        print(f"Image folder contents: {os.listdir(current_app.config['IMAGE_FOLDER']) if os.path.exists(current_app.config['IMAGE_FOLDER']) else 'FOLDER NOT FOUND'}")
         barcode_time = time.time()
         barcode_duration = barcode_time - start_time
 
@@ -83,10 +90,6 @@ def process_label_file(file, user_id, secure_filename):
             current_app.config['IMAGE_FOLDER']
         )
         sheet_gen.generate_sheet()
-
-        print(f"Sheet generation completed")
-        print(f"Checking for sheets in current directory: {[f for f in os.listdir('.') if f.startswith('label_sheet')]}")
-        print(f"Sheet folder contents: {os.listdir(current_app.config['SHEET_FOLDER']) if os.path.exists(current_app.config['SHEET_FOLDER']) else 'FOLDER NOT FOUND'}")
 
         sheet_time = time.time()
         sheet_duration = sheet_time - barcode_time
