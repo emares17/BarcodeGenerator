@@ -6,7 +6,12 @@ WORKDIR /app
 # Install system dependencies for pandas/PIL
 RUN apt-get update && apt-get install -y \
     gcc \
-    g++ \ 
+    g++ \
+    git \
+    fonts-dejavu-core \
+    fonts-liberation \
+    fontconfig \
+    && fc-cache -fv \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first (for better caching)
