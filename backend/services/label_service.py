@@ -71,6 +71,9 @@ def process_label_file(file, user_id, secure_filename):
             ]
             concurrent.futures.wait(futures)
 
+        print(f"Barcode generation completed")
+        print(f"Image folder exists: {os.path.exists(current_app.config['IMAGE_FOLDER'])}")
+        print(f"Image folder contents: {os.listdir(current_app.config['IMAGE_FOLDER']) if os.path.exists(current_app.config['IMAGE_FOLDER']) else 'FOLDER NOT FOUND'}")
         barcode_time = time.time()
         barcode_duration = barcode_time - start_time
 
@@ -80,6 +83,10 @@ def process_label_file(file, user_id, secure_filename):
             current_app.config['IMAGE_FOLDER']
         )
         sheet_gen.generate_sheet()
+
+        print(f"Sheet generation completed")
+        print(f"Checking for sheets in current directory: {[f for f in os.listdir('.') if f.startswith('label_sheet')]}")
+        print(f"Sheet folder contents: {os.listdir(current_app.config['SHEET_FOLDER']) if os.path.exists(current_app.config['SHEET_FOLDER']) else 'FOLDER NOT FOUND'}")
 
         sheet_time = time.time()
         sheet_duration = sheet_time - barcode_time
