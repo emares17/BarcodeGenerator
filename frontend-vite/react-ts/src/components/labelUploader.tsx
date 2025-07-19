@@ -33,6 +33,8 @@ function LabelUploader() {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [processingStatus, setProcessingStatus] = useState<string>('');
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   const [sheetStates, setSheetStates] = useState<{
     [sheetId: string]: {
       downloadStatus: 'idle' | 'downloading' | 'downloaded';
@@ -61,7 +63,7 @@ function LabelUploader() {
 
   const fetchUserSheets = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/my-sheets', {
+      const response = await axios.get(`${API_URL}/my-sheets`, {
         withCredentials: true
       });
       setUserSheets(response.data.sheets);
@@ -92,7 +94,7 @@ function LabelUploader() {
 
     try {
       const response = await axios.get(
-        `http://localhost:5000/download-sheet/${userSheetId}`,
+        `${API_URL}/download-sheet/${userSheetId}`,
         { 
           withCredentials: true,
           responseType: 'blob' 
@@ -147,7 +149,7 @@ function LabelUploader() {
     }));
 
     try {
-      await axios.delete(`http://localhost:5000/delete-sheet/${userSheetId}`, {
+      await axios.delete(`${API_URL}/delete-sheet/${userSheetId}`, {
         withCredentials: true
       });
       
@@ -220,7 +222,7 @@ function LabelUploader() {
       
       // Single API call - backend handles everything
       const response = await axios.post<BackendUploadResponse>(
-        'http://localhost:5000/upload',
+        `${API_URL}/upload`,
         formData,
         {
           withCredentials: true,

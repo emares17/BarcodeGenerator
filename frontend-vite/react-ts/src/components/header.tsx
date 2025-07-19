@@ -6,10 +6,12 @@ function Header() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/auth/status', {
+        const response = await axios.get(`${API_URL}/auth/status`, {
           withCredentials: true
         });
         setIsAuthenticated(response.data.authenticated);
@@ -23,7 +25,7 @@ function Header() {
 
   const handleLogout = async () => {
     try {
-      await axios.post('http://localhost:5000/auth/logout', {}, {
+      await axios.post(`${API_URL}/auth/logout`, {}, {
         withCredentials: true
       });
       navigate('/login');

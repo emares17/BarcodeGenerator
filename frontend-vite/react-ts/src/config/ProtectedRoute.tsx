@@ -11,10 +11,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/auth/status', {
+        const response = await axios.get(`${API_URL}/auth/status`, {
           withCredentials: true
         });
         setIsAuthenticated(response.data.authenticated);

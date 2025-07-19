@@ -10,14 +10,16 @@ function Login() {
   const [password, setPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(true);
   const [loginLoading, setLoginLoading] = useState(false);
-  const [loginSuccessful, setLoginSuccessful] = useState(false);
-  const [error, setError] = useState('');
+  const [_loginSuccessful, setLoginSuccessful] = useState(false);
+  const [_error, setError] = useState('');
   const navigate = useNavigate();
+
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/auth/status', {
+        const response = await axios.get(`${API_URL}/auth/status`, {
           withCredentials: true
         });
       
@@ -37,7 +39,7 @@ function Login() {
   const handleLogin = async () => {
     setLoginLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/auth/login', {
+      const response = await axios.post(`${API_URL}/auth/login`, {
         email,
         password
       }, {
