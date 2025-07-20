@@ -14,11 +14,8 @@ class BarcodeGenerator:
     def get_font(self, font_size):
     
         fonts_to_try = [
-            "/usr/share/fonts/truetype/arial.ttf"
             "arial.ttf",           # Windows
             "Arial.ttf",           # Windows alt
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",  # Docker first
-            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",  # Docker backup
             "DejaVuSans.ttf",      # Linux
             "Helvetica.ttc",       # macOS
             "/System/Library/Fonts/Arial.ttf"  # macOS path
@@ -26,14 +23,11 @@ class BarcodeGenerator:
     
         for font_path in fonts_to_try:
             try:
-                font = ImageFont.truetype(font_path, font_size)
                 print(f"Found font: {font_path}")
-                return font 
+                return ImageFont.truetype(font_path, font_size) 
             except (OSError, IOError):
                 print(f"Failed font: {font_path}")
                 continue
-        print("Using default font")
-        return ImageFont.load_default()  
 
     def draw(self, image, font_size, text, text2):
         draw = ImageDraw.Draw(image)

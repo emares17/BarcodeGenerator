@@ -3,8 +3,6 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-COPY arial.ttf /usr/share/fonts/truetype/arial.ttf
-
 # Install system dependencies for pandas/PIL
 RUN apt-get update && apt-get install -y \
     gcc \
@@ -15,6 +13,15 @@ RUN apt-get update && apt-get install -y \
     fontconfig \
     && fc-cache -fv \
     && rm -rf /var/lib/apt/lists/*
+
+RUN echo '<?xml version="1.0"?>' > /etc/fonts/local.conf && \
+    echo '<fontconfig>' >> /etc/fonts/local.conf && \
+    echo '  <alias>' >> /etc/fonts/local.conf && \
+    echo '    <family>sans-serif</family>' >> /etc/fonts/local.conf && \
+    echo '    <prefer><family>Liberation Sans</family></prefer>' >> /etc/fonts/local.conf && \
+    echo '  </alias>' >> /etc/fonts/local.conf && \
+    echo '</fontconfig>' >> /etc/fonts/local.conf && \
+    fc-cache -fv
 
 # Copy requirements first (for better caching)
 COPY requirements.txt .
@@ -27,8 +34,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
-
-RUN fc-cache -fv
 
 # Create necessary directories
 RUN mkdir -p uploads images sheets logs
