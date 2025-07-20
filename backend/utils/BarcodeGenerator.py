@@ -14,10 +14,11 @@ class BarcodeGenerator:
     def get_font(self, font_size):
     
         fonts_to_try = [
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",  # Docker first
-            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",  # Docker backup
+            "/usr/share/fonts/truetype/arial.ttf"
             "arial.ttf",           # Windows
             "Arial.ttf",           # Windows alt
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",  # Docker first
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",  # Docker backup
             "DejaVuSans.ttf",      # Linux
             "Helvetica.ttc",       # macOS
             "/System/Library/Fonts/Arial.ttf"  # macOS path

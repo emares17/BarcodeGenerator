@@ -3,6 +3,8 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
+COPY arial.ttf /usr/share/fonts/truetype/arial.ttf
+
 # Install system dependencies for pandas/PIL
 RUN apt-get update && apt-get install -y \
     gcc \
@@ -25,6 +27,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
+
+RUN fc-cache -fv
 
 # Create necessary directories
 RUN mkdir -p uploads images sheets logs
