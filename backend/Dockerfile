@@ -8,7 +8,6 @@ RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     git \
-    fonts-dejavu-core \
     fonts-liberation \
     fontconfig \
     && fc-cache -fv \
