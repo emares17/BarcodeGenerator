@@ -10,6 +10,7 @@ from utils.LabelSheetGenerator import LabelSheetGenerator
 from services.storage_service import upload_files_to_storage
 from models.database import get_supabase_admin
 from utils.file_utils import cleanup_images_async
+from threading import Lock
 
 file_lock = Lock()
 
