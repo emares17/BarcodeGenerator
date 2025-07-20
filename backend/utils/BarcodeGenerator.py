@@ -14,6 +14,8 @@ class BarcodeGenerator:
     def get_font(self, font_size):
     
         fonts_to_try = [
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",  # Docker first
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",  # Docker backup
             "arial.ttf",           # Windows
             "Arial.ttf",           # Windows alt
             "DejaVuSans.ttf",      # Linux
@@ -23,9 +25,41 @@ class BarcodeGenerator:
     
         for font_path in fonts_to_try:
             try:
-                return ImageFont.truetype(font_path, font_size)
+                font = ImageFont.truetype(font_path, font_size)
+                print(f"Found font: {font_path}")
+                return font 
             except (OSError, IOError):
+                print(f"Failed font: {font_path}")
                 continue
+        print("Using default font")
+        return ImageFont.load_default()  
+    
+    def get_barcode_writer(self):
+        writer = ImageWriter()
+        
+        font_paths = [
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",  # Docker
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",  # Docker backup
+            "arial.ttf",  # Windows
+            "DejaVuSans.ttf",  # Linux
+        ]
+        
+        for font_path in font_paths:
+            try:
+                test_font = ImageFont.truetype(font_path, 12)
+                writer.font_path = font_path
+                print(f"Using font: {font_path}")
+                break
+            except (OSError, IOError):
+                print(f"Failed to load font: {font_path}")
+                continue
+        
+        # Configure writer settings
+        writer.font_size = 12
+        writer.text_distance = 5
+        writer.module_height = 15
+        
+        return writer
 
     def draw(self, image, font_size, text, text2):
         draw = ImageDraw.Draw(image)
@@ -45,8 +79,10 @@ class BarcodeGenerator:
 
         jpeg_filename = f"{folder}/{location.replace('-', '')}.jpeg"
 
+        writer = self.get_barcode_writer()
+
         with open(jpeg_filename, "wb") as f:
-            code128 = Code128(part, writer=ImageWriter()).write(f)
+            code128 = Code128(part, writer=writer).write(f)
 
         image = Image.open(jpeg_filename)
         image = image.resize((width_pixels, height_pixels), Image.Resampling.LANCZOS)
