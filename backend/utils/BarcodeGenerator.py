@@ -33,39 +33,12 @@ class BarcodeGenerator:
                 continue
         print("Using default font")
         return ImageFont.load_default()  
-    
-    def get_barcode_writer(self):
-        writer = ImageWriter()
-        
-        font_paths = [
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",  # Docker
-            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",  # Docker backup
-            "arial.ttf",  # Windows
-            "DejaVuSans.ttf",  # Linux
-        ]
-        
-        for font_path in font_paths:
-            try:
-                test_font = ImageFont.truetype(font_path, 12)
-                writer.font_path = font_path
-                print(f"Using font: {font_path}")
-                break
-            except (OSError, IOError):
-                print(f"Failed to load font: {font_path}")
-                continue
-        
-        # Configure writer settings
-        writer.font_size = 12
-        writer.text_distance = 5
-        writer.module_height = 15
-        
-        return writer
 
     def draw(self, image, font_size, text, text2):
         draw = ImageDraw.Draw(image)
         font = self.get_font(font_size)
         
-        draw_text = f'Locaton: {text}\nUnit: {text2}'
+        draw_text = f'Location: {text}\nUnit: {text2}'
         textbbox = draw.textbbox((0, 0), draw_text, font=font)
 
         text_x = (image.width - (textbbox[2] - textbbox[0])) / 2
@@ -79,10 +52,8 @@ class BarcodeGenerator:
 
         jpeg_filename = f"{folder}/{location.replace('-', '')}.jpeg"
 
-        writer = self.get_barcode_writer()
-
         with open(jpeg_filename, "wb") as f:
-            code128 = Code128(part, writer=writer).write(f)
+            code128 = Code128(part, writer=ImageWriter()).write(f)
 
         image = Image.open(jpeg_filename)
         image = image.resize((width_pixels, height_pixels), Image.Resampling.LANCZOS)
