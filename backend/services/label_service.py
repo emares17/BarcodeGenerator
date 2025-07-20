@@ -11,6 +11,27 @@ from services.storage_service import upload_files_to_storage
 from models.database import get_supabase_admin
 from utils.file_utils import cleanup_images_async
 
+file_lock = Lock()
+
+def thread_safe_barcode_worker(location, part, unit, image_folder):
+    try:
+        print(f"Generating barcode for: {location}")
+        
+        # Import here to avoid threading issues
+        from utils.BarcodeGenerator import BarcodeGenerator
+        
+        generator = BarcodeGenerator(2.5, 2.0, 600, {}, image_folder)
+        
+        with file_lock:
+            result = generator.generate_image(location, part, unit, image_folder)
+        
+        print(f"Generated barcode for: {location}")
+        return result
+        
+    except Exception as e:
+        print(f"Failed to generate barcode for {location}: {e}")
+        return None
+
 def generate_barcode_worker(location, part, unit, folder):
     generator = BarcodeGenerator(2.5, 2.0, 600, {}, folder)
     generator.generate_image(location, part, unit, folder)
@@ -69,26 +90,35 @@ def process_label_file(file, user_id, secure_filename):
             os.cpu_count() - 1, 
             len(inventory)
         )
+
+        print(f"Starting barcode generation with {max_workers} threads...")
         
-        # Use ThreadPoolExecutor (works in Docker) with thread-safe barcode generation:
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            print(f"🔍 Starting ThreadPoolExecutor with {max_workers} workers...")
-    
-            futures = [
+            futures = {
                 executor.submit(
-                    generate_barcode_worker, 
+                    thread_safe_barcode_worker, 
                     location, part, unit, 
                     current_app.config['IMAGE_FOLDER']
-                )
-                for location, (part, unit) in inventory.items()
-            ]
-    
-            print(f"🔍 Submitted {len(futures)} tasks, waiting for completion...")
-            concurrent.futures.wait(futures)
-            print(f"🔍 ThreadPool execution completed")
+                ): location for location, (part, unit) in inventory.items()
+            }
+            # concurrent.futures.wait(futures)
 
-        print(f"🔍 Executor completed")
-        print(f"🔍 Checking for generated barcodes...")
+            completed = 0
+            failed = 0
+    
+            for future in concurrent.futures.as_completed(futures):
+                location = futures[future]
+                try:
+                    result = future.result()
+                    if result:
+                        completed += 1
+                    else:
+                        failed += 1
+                except Exception as e:
+                    print(f"Thread failed for {location}: {e}")
+                    failed += 1
+
+        print(f"Barcode generation completed: {completed} success, {failed} failed")
 
         # Check if any barcode images were created:
         image_folder = current_app.config['IMAGE_FOLDER']
