@@ -3,45 +3,32 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies including fonts
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     git \
     curl \
-    fonts-dejavu-core \
-    fonts-dejavu-extra \
-    fonts-liberation \
-    fonts-liberation2 \
+    wget \
+    cabextract \
     fontconfig \
+    fonts-dejavu-core \
+    fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
 
-# Rebuild font cache
-RUN fc-cache -fv
-
-# List available fonts for debugging
-RUN fc-list | grep -i "dejavu\|liberation" || true
-
-# Set font configuration to prefer Liberation Sans, then DejaVu Sans
-RUN echo '<?xml version="1.0"?>' > /etc/fonts/local.conf && \
-    echo '<!DOCTYPE fontconfig SYSTEM "fonts.dtd">' >> /etc/fonts/local.conf && \
-    echo '<fontconfig>' >> /etc/fonts/local.conf && \
-    echo '  <alias>' >> /etc/fonts/local.conf && \
-    echo '    <family>sans-serif</family>' >> /etc/fonts/local.conf && \
-    echo '    <prefer>' >> /etc/fonts/local.conf && \
-    echo '      <family>Liberation Sans</family>' >> /etc/fonts/local.conf && \
-    echo '      <family>DejaVu Sans</family>' >> /etc/fonts/local.conf && \
-    echo '    </prefer>' >> /etc/fonts/local.conf && \
-    echo '  </alias>' >> /etc/fonts/local.conf && \
-    echo '  <alias>' >> /etc/fonts/local.conf && \
-    echo '    <family>Arial</family>' >> /etc/fonts/local.conf && \
-    echo '    <prefer>' >> /etc/fonts/local.conf && \
-    echo '      <family>Liberation Sans</family>' >> /etc/fonts/local.conf && \
-    echo '      <family>DejaVu Sans</family>' >> /etc/fonts/local.conf && \
-    echo '    </prefer>' >> /etc/fonts/local.conf && \
-    echo '  </alias>' >> /etc/fonts/local.conf && \
-    echo '</fontconfig>' >> /etc/fonts/local.conf && \
-    fc-cache -fv
+# Install MS Core Fonts (including Arial)
+# Using timeout and retry for network reliability
+RUN mkdir -p /tmp/msfonts && \
+    cd /tmp/msfonts && \
+    timeout 60 wget -q --tries=3 --no-check-certificate https://downloads.sourceforge.net/corefonts/arial32.exe && \
+    timeout 60 wget -q --tries=3 --no-check-certificate https://downloads.sourceforge.net/corefonts/arialb32.exe && \
+    cabextract -q *.exe && \
+    mkdir -p /usr/share/fonts/truetype/msttcorefonts && \
+    cp *.ttf *.TTF /usr/share/fonts/truetype/msttcorefonts/ 2>/dev/null || true && \
+    chmod 644 /usr/share/fonts/truetype/msttcorefonts/* && \
+    cd / && \
+    rm -rf /tmp/msfonts && \
+    fc-cache -f -v
 
 # Copy requirements first (for better caching)
 COPY requirements.txt .
@@ -58,7 +45,7 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p uploads images sheets logs
 
-# Expose port (will use $PORT env variable)
+# Expose port
 EXPOSE 8000
 
 # Health check

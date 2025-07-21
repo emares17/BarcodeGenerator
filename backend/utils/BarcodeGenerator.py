@@ -14,18 +14,18 @@ class BarcodeGenerator:
     def get_font(self, font_size):
     
         fonts_to_try = [
+            # Full paths for Linux (Docker)
+            "/usr/share/fonts/truetype/msttcorefonts/Arial.TTF",
             "/usr/share/fonts/truetype/msttcorefonts/arial.ttf",
-            "/usr/share/fonts/truetype/msttcorefonts/Arial.ttf",
-            # Windows fonts
-            "arial.ttf",
-            "Arial.ttf",
-            # Linux fonts (fallback)
+            # Case variations for different systems
+            "Arial.TTF",           # Linux with fontconfig
+            "arial.ttf",           # Windows
+            "Arial.ttf",           # Windows alt
+            # Fallback fonts
             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-            "DejaVuSans.ttf",
-            "LiberationSans-Regular.ttf",
-            # macOS fonts
-            "/System/Library/Fonts/Helvetica.ttc",
+            "DejaVuSans.ttf",      # Linux
+            # macOS
+            "Helvetica.ttc",       
             "/System/Library/Fonts/Arial.ttf"
         ]
     
@@ -48,12 +48,8 @@ class BarcodeGenerator:
         draw_text = f'Location: {text}\nUnit: {text2}'
         textbbox = draw.textbbox((0, 0), draw_text, font=font)
 
-        # text_x = (image.width - (textbbox[2] - textbbox[0])) / 2
-        # text_y = image.height - (textbbox[3] - textbbox[1]) * 1.2
-        text_width = textbbox[2] - textbbox[0]
-        text_height = textbbox[3] - textbbox[1]
-        text_x = (image.width - text_width) / 2
-        text_y = image.height - text_height * 1.2
+        text_x = (image.width - (textbbox[2] - textbbox[0])) / 2
+        text_y = image.height - (textbbox[3] - textbbox[1]) * 1.2
 
         draw.text((text_x, text_y), draw_text, fill='black', font = font)
 
