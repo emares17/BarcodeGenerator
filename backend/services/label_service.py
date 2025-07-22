@@ -7,7 +7,7 @@ import base64
 from flask import current_app
 from utils.BarcodeGenerator import BarcodeGenerator
 from utils.LabelSheetGenerator import LabelSheetGenerator
-from services.storage_service import upload_files_to_storage
+from services.storage_service import upload_files_to_storage, create_zip_from_sheets, upload_zip_to_storage
 from models.database import get_supabase_admin
 from utils.file_utils import cleanup_images_async
 from threading import Lock
@@ -102,7 +102,6 @@ def process_label_file(file, user_id, secure_filename):
                     current_app.config['IMAGE_FOLDER']
                 ): location for location, (part, unit) in inventory.items()
             }
-            # concurrent.futures.wait(futures)
 
             completed = 0
             failed = 0
@@ -120,15 +119,6 @@ def process_label_file(file, user_id, secure_filename):
                     failed += 1
 
         print(f"Barcode generation completed: {completed} success, {failed} failed")
-
-        # Check if any barcode images were created:
-        image_folder = current_app.config['IMAGE_FOLDER']
-        if os.path.exists(image_folder):
-            barcode_files = os.listdir(image_folder)
-            print(f"🔍 Barcode files generated: {len(barcode_files)}")
-            print(f"🔍 First few files: {barcode_files[:5] if barcode_files else 'NONE'}")
-        else:
-            print(f"🔍 IMAGE FOLDER DOESN'T EXIST: {image_folder}")
 
         barcode_time = time.time()
         barcode_duration = barcode_time - start_time
@@ -150,10 +140,47 @@ def process_label_file(file, user_id, secure_filename):
         for sheet in sheets:
             os.rename(sheet, os.path.join(current_app.config['SHEET_FOLDER'], sheet))
         
-        # Upload to storage
-        result = _upload_sheets_to_storage(
-            user_id, secure_filename, sheets, label_count
-        )
+        zip_start_time = time.time()
+
+        zip_buffer = create_zip_from_sheets(current_app.config['SHEET_FOLDER'], sheets)
+
+        user_sheet_data = {
+            'user_id': user_id,
+            'original_filename': secure_filename,
+            'label_count': label_count,
+            'sheet_count': len(sheets),
+            'total_size_bytes': 0,  
+        }
+
+        sheet_response = get_supabase_admin().table('user_sheets').insert(user_sheet_data).execute()
+
+        if not sheet_response.data:
+            raise Exception("Failed to create user_sheets record")
+        
+        user_sheet_id = sheet_response.data[0]['id']
+
+        upload_result = upload_zip_to_storage(
+            user_id, user_sheet_id, zip_buffer, secure_filename)
+        
+        # Cleanup on failure
+        if not upload_result['success']:
+            get_supabase_admin().table('user_sheets').delete().eq('id', user_sheet_id).execute()
+            raise Exception(f'ZIP upload failed: {upload_result.get("error", "Unknown error")}')
+        
+        get_supabase_admin().table('user_sheets').update({
+            'total_size_bytes': upload_result['zip_size'],
+        }).eq('id', user_sheet_id).execute()
+
+        sheet_file_data = {
+            'user_sheet_id': user_sheet_id,
+            'filename': f'sheets_{user_sheet_id}.zip',
+            'storage_path': upload_result['storage_path'],
+            'file_size_bytes': upload_result['zip_size'],
+            'sheet_number': 0  # Special indicator for ZIP
+        }
+        get_supabase_admin().table('sheet_files').insert(sheet_file_data).execute()
+
+        zip_duration = time.time() - zip_start_time
         
         # Cleanup
         os.remove(filepath)
@@ -164,15 +191,24 @@ def process_label_file(file, user_id, secure_filename):
         
         cleanup_images_async(current_app.config['IMAGE_FOLDER'])
         
-        # Performance logging
         total_time = time.time() - start_time
-        print(f"   PERFORMANCE RESULTS:")
+        print(f"\n PERFORMANCE RESULTS:")
         print(f"   Labels processed: {label_count}")
         print(f"   Barcode generation: {barcode_duration:.2f}s")
-        print(f"   Sheet generation: {sheet_duration:.2f}s")
+        print(f"   Sheet generation: {sheet_duration:.2f}s") 
+        print(f"   ZIP creation & upload: {zip_duration:.2f}s")
         print(f"   Total time: {total_time:.2f}s")
+        print(f"   ZIP size: {upload_result['zip_size'] / 1024 / 1024:.2f} MB")
         
-        return result
+        return {
+            'success': True,
+            'user_sheet_id': user_sheet_id,
+            'storage_path': upload_result['storage_path'],
+            'zip_size': upload_result['zip_size'],
+            'label_count': label_count,
+            'sheet_count': len(sheets),
+            'message': f'Successfully processed {label_count} labels and uploaded as ZIP'
+        }
         
     except Exception as e:
         # Cleanup on error
