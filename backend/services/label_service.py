@@ -12,22 +12,24 @@ from models.database import get_supabase_admin
 from utils.file_utils import cleanup_images_async
 from threading import Lock
 
+shared_generator = None
 file_lock = Lock()
+
+def init_shared_generator(width, height, dpi, inventory, folder):
+    global shared_generator
+    if shared_generator is None:
+        from utils.BarcodeGenerator import BarcodeGenerator
+        shared_generator = BarcodeGenerator(width, height, dpi, inventory, folder)
+    return shared_generator
 
 def thread_safe_barcode_worker(location, part, unit, image_folder):
     try:
-        print(f"Generating barcode for: {location}")
-        
-        # Import here to avoid threading issues
-        from utils.BarcodeGenerator import BarcodeGenerator
-        
-        generator = BarcodeGenerator(2.5, 2.0, 600, {}, image_folder)
+        generator = init_shared_generator(2.5, 2.0, 600, {}, image_folder)
         
         with file_lock:
-            result = generator.generate_image(location, part, unit, image_folder)
+            generator.generate_image(location, part, unit, image_folder)
         
-        print(f"Generated barcode for: {location}")
-        return result
+        return True
         
     except Exception as e:
         print(f"Failed to generate barcode for {location}: {e}")
