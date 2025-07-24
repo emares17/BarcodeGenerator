@@ -6,121 +6,12 @@ import {
   Bars3Icon,
   XMarkIcon,
   HomeIcon,
-  BeakerIcon,
-  CurrencyDollarIcon,
   QuestionMarkCircleIcon,
   ArrowRightOnRectangleIcon,
   UserIcon,
   Cog6ToothIcon,
   ChartBarIcon
 } from '@heroicons/react/24/outline';
-
-// function Header() {
-//   const [isAuthenticated, setIsAuthenticated] = useState(false);
-//   const [menuOpen, setMenuOpen] = useState(false);
-
-//   const toggleMenu = () => setMenuOpen(!menuOpen);
-//   const navigate = useNavigate();
-
-//   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
-//   useEffect(() => {
-//     const checkAuthStatus = async () => {
-//       try {
-//         const response = await axios.get(`${API_URL}/auth/status`, {
-//           withCredentials: true
-//         });
-//         setIsAuthenticated(response.data.authenticated);
-//       } catch (err) {
-//         setIsAuthenticated(false);
-//       }
-//     }
-
-//     checkAuthStatus();
-//   }, []);
-
-//   const handleLogout = async () => {
-//     try {
-//       await axios.post(`${API_URL}/auth/logout`, {}, {
-//         withCredentials: true
-//       });
-//       navigate('/login');
-//     } catch (error) {
-//       console.error('Logout error:', error);
-//     }
-//   };
-
-//   return (
-//     <header className="w-full bg-white border-b border-gray-200 shadow-sm">
-//         <div className="w-full px-8 py-4">
-//           <div className="flex items-center justify-between">
-//             <div className="flex items-center gap-4">
-//               <div className="w-6 h-6">
-//                 <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-//                   <path fillRule="evenodd" clipRule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor" />
-//                 </svg>
-//               </div>
-//               <a href="/login" className="text-xl font-bold tracking-tight text-gray-900">LabelGenius</a>
-//             </div>
-//             <div className="flex items-center gap-8">
-//               <nav className="relative">
-//                 {/* Mobile Menu Button */}
-//                 <div className="md:hidden flex justify-end px-4 py-2">
-//                   <button onClick={toggleMenu} className="text-gray-900">
-//                     {menuOpen ? <X size={24} /> : <Menu size={24} />}
-//                   </button>
-//                 </div>
-
-//                 {/* Desktop Nav */}
-//                 <div className="hidden md:flex gap-6 text-sm font-medium">
-//                   {isAuthenticated ? (
-//                     <>
-//                       <a href="/dashboard" className="text-gray-900 hover:text-gray-700 font-bold px-3 py-2">Dashboard</a>
-//                       <a href="#" className="text-gray-900 hover:text-gray-700 font-bold px-3 py-2">Settings</a>
-//                       <a href="/help" className="text-gray-900 hover:text-gray-700 font-bold px-3 py-2">Help</a>
-//                       <button onClick={handleLogout} className="text-gray-900 hover:text-gray-700 font-bold px-3 py-2 bg-transparent border-none">
-//                         Logout
-//                       </button>
-//                     </>
-//                   ) : (
-//                     <>
-//                       <a href="/login" className="text-gray-900 hover:text-gray-700 font-bold px-3 py-2">Login</a>
-//                       <a href="/signup" className="text-gray-900 hover:text-gray-700 font-bold px-3 py-2">Sign Up</a>
-//                       <a href="/help" className="text-gray-900 hover:text-gray-700 font-bold px-3 py-2">Help</a>
-//                     </>
-//                   )}
-//                 </div>
-
-//                 {/* Mobile Nav */}
-//                 {menuOpen && (
-//                   <div className="md:hidden absolute right-0 top-12 bg-white shadow-md rounded-md p-4 w-48 z-50 space-y-2">
-//                     {isAuthenticated ? (
-//                       <>
-//                         <a href="/dashboard" className="block text-gray-900 hover:text-gray-700 font-bold">Dashboard</a>
-//                         <a href="#" className="block text-gray-900 hover:text-gray-700 font-bold">Settings</a>
-//                         <a href="/help" className="block text-gray-900 hover:text-gray-700 font-bold">Help</a>
-//                         <button onClick={handleLogout} className="block text-left w-full text-gray-900 hover:text-gray-700 font-bold bg-transparent border-none">
-//                           Logout
-//                         </button>
-//                       </>
-//                     ) : (
-//                       <>
-//                         <a href="/login" className="block text-gray-900 hover:text-gray-700 font-bold">Login</a>
-//                         <a href="/signup" className="block text-gray-900 hover:text-gray-700 font-bold">Sign Up</a>
-//                         <a href="/help" className="block text-gray-900 hover:text-gray-700 font-bold">Help</a>
-//                       </>
-//                     )}
-//                   </div>
-//                 )}
-//               </nav>
-//             </div>
-//           </div>
-//         </div>
-//       </header>
-//   );
-// }
-
-// export default Header;
 
 const Header = () => {
 
