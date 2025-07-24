@@ -1,15 +1,16 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './components/login';
 import LabelUploader from './components/labelUploader';
 import Dashboard from './components/dashboard'; 
 import ProtectedRoute from './config/ProtectedRoute';
 import Help from './components/help'; 
 import SignUp from './components/signup';
+import LandingPage from './pages/LandingPage';
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route 
           path="/dashboard" 
