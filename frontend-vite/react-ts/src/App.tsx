@@ -5,11 +5,13 @@ import Dashboard from './components/dashboard';
 import ProtectedRoute from './config/ProtectedRoute';
 import Help from './components/help'; 
 import SignUp from './components/signup';
+import LandingPage from './pages/LandingPage';
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        {/* <Route path="/" element={<Navigate to="/login" replace />} /> */}
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route 
           path="/dashboard" 
