@@ -64,7 +64,7 @@ class ProductionConfig(Config):
     DEBUG = False
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = 'None'
-    SESSION_COOKIE_DOMAIN = '.up.railway.app'
+    SESSION_COOKIE_DOMAIN = None
     
     # Production CORS; To be updated**
     CORS_CONFIG = {
