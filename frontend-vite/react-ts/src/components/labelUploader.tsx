@@ -302,11 +302,11 @@ function LabelUploader() {
   return (
     <div className="w-full flex justify-center py-10">
       <div className="w-full max-w-4xl px-8">
-        <h1 className="text-3xl font-bold mb-6 text-center">Generate Labels</h1>
+        <h1 className="text-3xl text-[#121517] font-bold mb-6 text-center">Generate Labels</h1>
         
         <div className="flex flex-col items-center gap-6 rounded-lg border-2 border-dashed border-gray-300 px-6 py-14 mb-6 bg-gray-50">
           <div className="text-center">
-            <p className="text-lg font-bold">Drag and drop or browse files</p>
+            <p className="text-lg text-[#121517] font-bold">Drag and drop or browse files</p>
             <p className="text-sm text-gray-600 mt-1">Supported formats: CSV, Excel (.xlsx, .xls). Maximum size: 50MB.</p>
           </div>
           <div className="relative">
@@ -319,7 +319,7 @@ function LabelUploader() {
               className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
             />
             <button 
-              className="bg-white hover:bg-gray-50 transition-colors text-sm font-bold px-8 py-3 rounded-lg border-2 border-gray-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-white hover:bg-gray-50 transition-colors text-sm text-[#121517] font-bold px-8 py-3 rounded-lg border-2 border-gray-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading}
             >
               {file ? file.name : 'Select File'}
@@ -336,7 +336,7 @@ function LabelUploader() {
         <button 
           onClick={handleUpload}
           disabled={loading}
-          className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold py-4 rounded-xl shadow-lg hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold cursor-pointer py-4 rounded-xl shadow-lg hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Generating...' : 'Generate Label Sheets'}
         </button>

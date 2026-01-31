@@ -41,7 +41,7 @@ const Header = () => {
       await axios.post(`${API_URL}/auth/logout`, {}, {
         withCredentials: true
       });
-      navigate('/login');
+      navigate('/');
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -58,7 +58,7 @@ const Header = () => {
                    <path fillRule="evenodd" clipRule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor" />
                  </svg>
               </div>
-               <a href="/login" className="text-xl font-bold tracking-tight text-gray-900">LabelGenius</a>
+               <a href="/" className="text-xl font-bold tracking-tight text-gray-900">LabelGenius</a>
             </div>
           </div>
 
@@ -66,10 +66,9 @@ const Header = () => {
           <nav className="hidden md:flex items-center gap-6">
             {isAuthenticated ? (
               <>
-                <a href="/dashboard" className="text-gray-900 hover:text-gray-700 font-bold px-3 py-2">Dashboard</a>
                 <a href="#" className="text-gray-900 hover:text-gray-700 font-bold px-3 py-2">Settings</a>
                 <a href="/help" className="text-gray-900 hover:text-gray-700 font-bold px-3 py-2">Help</a>
-                <button onClick={handleLogout} className="text-gray-900 hover:text-gray-700 font-bold px-3 py-2 bg-transparent border-none">
+                <button onClick={handleLogout} className="text-gray-900 hover:text-gray-700 cursor-pointer font-bold px-3 py-2 bg-transparent border-none">
                     Logout
                 </button>
               </>

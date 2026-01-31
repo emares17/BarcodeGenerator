@@ -219,9 +219,9 @@ function LandingPage() {
       </div>
     </section>
 
-        <section className="w-full bg-white py-20 text-center" id="cta">
+        <section className="w-full bg-black py-20 text-center" id="cta">
           <div className="max-w-4xl mx-auto px-8">
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">Start Creating Barcode Labels in Seconds</h2>
+            <h2 className="text-4xl font-bold text-white-900 mb-6">Start Creating Barcode Labels in Seconds</h2>
             <a 
               href="/signup" 
               className="inline-flex items-center justify-center py-4 px-8 bg-gradient-to-r font-semibold from-blue-500 to-indigo-500 text-white rounded-lg hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-200"
