@@ -124,7 +124,7 @@ function SignUp() {
                   placeholder="Enter your username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="form-input w-full rounded-xl border border-[#dde1e3] bg-white h-14 p-[15px] text-base placeholder-[#6a7681] focus:outline-none focus:ring-0"
+                  className="form-input w-full rounded-xl border border-[#dde1e3] bg-white h-14 p-[15px] text-base text-[#121416] placeholder-[#6a7681] focus:outline-none focus:ring-0"
                 />
               </label>
             </div>
@@ -137,7 +137,7 @@ function SignUp() {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="form-input w-full rounded-xl border border-[#dde1e3] bg-white h-14 p-[15px] text-base placeholder-[#6a7681] focus:outline-none focus:ring-0"
+                  className="form-input w-full rounded-xl border border-[#dde1e3] bg-white h-14 p-[15px] text-base text-[#121416] placeholder-[#6a7681] focus:outline-none focus:ring-0"
                 />
               </label>
               <label className="flex flex-col w-full">
@@ -147,7 +147,7 @@ function SignUp() {
                   placeholder="Re-enter your password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="form-input w-full rounded-xl border border-[#dde1e3] bg-white h-14 p-[15px] text-base placeholder-[#6a7681] focus:outline-none focus:ring-0"
+                  className="form-input w-full rounded-xl border border-[#dde1e3] bg-white h-14 p-[15px] text-base text-[#121416] placeholder-[#6a7681] focus:outline-none focus:ring-0"
                 />
               </label>
             </div>

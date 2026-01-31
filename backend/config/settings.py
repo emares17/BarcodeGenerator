@@ -63,13 +63,16 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     DEBUG = False
     SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = 'None'
+    SESSION_COOKIE_DOMAIN = '.up.railway.app'
     
     # Production CORS; To be updated**
     CORS_CONFIG = {
-        'origins': [os.getenv('FRONTEND_URL', 'http://localhost:5173')],
+        'origins': ['https://labelgenius.up.railway.app'],
         'supports_credentials': True,
         'allow_headers': ['Content-Type', 'Authorization'],
-        'methods': ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
+        'methods': ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+        'expose_headers': ['Set-Cookie']
     }
     
     # Stricter production settings

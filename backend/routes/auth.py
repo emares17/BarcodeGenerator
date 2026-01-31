@@ -38,7 +38,9 @@ def login():
             return jsonify({'error': 'Invalid credentials'}), 401
             
     except Exception as e:
-        current_app.logger.error(f"Login error: {type(e).__name__}")
+        current_app.logger.error(f"Login error: {type(e).__name__}: {str(e)}")
+        import traceback
+        current_app.logger.error(traceback.format_exc())
         return jsonify({'error': 'Login failed'}), 500
 
 @auth_bp.route('/logout', methods=['POST'])
