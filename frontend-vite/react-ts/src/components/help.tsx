@@ -38,7 +38,7 @@ function Help() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex flex-col md:flex-row min-h-screen bg-background">
       <Sidebar activeOverride="/help" />
 
       <main className="flex-1 min-w-0 p-6 md:p-10">

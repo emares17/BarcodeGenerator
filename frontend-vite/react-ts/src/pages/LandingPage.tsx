@@ -101,8 +101,8 @@ function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="px-6 md:px-20 py-16 md:py-20">
-        <div className="flex flex-col-reverse md:flex-row items-center gap-12 md:gap-16">
+      <section className="px-6 md:px-20 py-10 md:py-20">
+        <div className="flex flex-col-reverse md:flex-row items-center gap-10 md:gap-16">
           <div className="flex-1 flex flex-col gap-6">
             <span className="inline-flex items-center gap-2 bg-secondary text-primary font-body text-[13px] font-semibold rounded-full px-4 py-1.5 w-fit">
               <Zap className="w-3.5 h-3.5" />
@@ -124,7 +124,7 @@ function LandingPage() {
               </a>
             </div>
           </div>
-          <div className="flex-shrink-0 w-full md:w-[560px] h-[300px] md:h-[400px]">
+          <div className="flex-shrink-0 w-full md:w-[560px] h-[220px] md:h-[400px]">
             <svg
               viewBox="0 0 560 400"
               className="w-full h-full select-none"
