@@ -1,17 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from './header';
 import axios from 'axios';
-
+import { ScanBarcode } from 'lucide-react';
 
 function Login() {
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(true);
   const [loginLoading, setLoginLoading] = useState(false);
-  const [_loginSuccessful, setLoginSuccessful] = useState(false);
-  const [_error, setError] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -19,39 +16,28 @@ function Login() {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await axios.get(`${API_URL}/auth/status`, {
-          withCredentials: true
-        });
-      
+        const response = await axios.get(`${API_URL}/auth/status`, { withCredentials: true });
         if (response.data.authenticated) {
           navigate('/dashboard', { replace: true });
         } else {
           setAuthLoading(false);
         }
-      } catch (err) {
-          setAuthLoading(false);
+      } catch {
+        setAuthLoading(false);
       }
     };
-
     checkAuthStatus();
   }, []);
 
   const handleLogin = async () => {
     setLoginLoading(true);
+    setError('');
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, {
-        email,
-        password
-      }, {
-        withCredentials: true 
-      });
-
+      const response = await axios.post(`${API_URL}/auth/login`, { email, password }, { withCredentials: true });
       if (response.data.success) {
-        setLoginSuccessful(true)
         navigate('/dashboard');
       }
     } catch (err) {
-      console.error('Login failed:', err);
       if (axios.isAxiosError(err) && err.response?.data?.error) {
         setError(err.response.data.error);
       } else {
@@ -63,75 +49,93 @@ function Login() {
   };
 
   if (authLoading) {
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-    </div>
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     );
   }
 
   return (
-    <div
-      className="w-screen min-h-screen bg-white"
-      style={{ fontFamily: 'Inter, Noto Sans, sans-serif' }}
-    >
-    <header className="w-full bg-white border-b border-gray-200 shadow-sm">
-        <Header/>
-    </header>
+    <div className="flex min-h-screen">
+      {/* Left Visual Panel */}
+      <div className="hidden lg:flex flex-1 bg-foreground flex-col justify-end p-16 gap-6">
+        <h2 className="font-heading text-4xl font-bold text-background leading-tight">
+          Turn your spreadsheets<br />into barcode labels
+        </h2>
+        <p className="text-base text-muted-foreground leading-relaxed">
+          Professional label generation for businesses of any size.
+        </p>
+      </div>
 
-        <div className="px-4 sm:px-10 md:px-40 flex flex-1 justify-center py-5">
-          <div className="flex flex-col w-full max-w-[512px] py-5">
-            <h2 className="text-[#121416] text-[28px] font-bold leading-tight text-center pb-3 pt-5">
-              Welcome back
-            </h2>
+      {/* Right Form Panel */}
+      <div className="flex flex-col items-center justify-center w-full lg:w-[560px] px-8 lg:px-20 bg-background">
+        <div className="w-full max-w-sm flex flex-col items-center gap-8">
+          <div className="flex items-center gap-2">
+            <ScanBarcode className="w-8 h-8 text-primary" />
+            <span className="font-heading text-2xl font-bold text-foreground">LabelGenius</span>
+          </div>
 
-            <div className="flex flex-wrap gap-4 px-4 py-3">
-              <label className="flex flex-col w-full">
-                <p className="text-[#121416] text-base font-medium pb-2">Username</p>
+          <div className="w-full bg-card border border-border rounded-[16px] shadow-sm overflow-hidden">
+            <div className="px-6 py-6 border-b border-border">
+              <h1 className="font-heading text-xl font-semibold text-foreground">Welcome back</h1>
+              <p className="text-sm text-muted-foreground mt-1">Enter your credentials to access your account</p>
+            </div>
+
+            <div className="px-6 py-6 flex flex-col gap-4">
+              {error && (
+                <div className="p-3 bg-error rounded-[16px]">
+                  <p className="text-sm text-error-foreground">{error}</p>
+                </div>
+              )}
+
+              <label className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-foreground">Email</span>
                 <input
-                  type="text"
-                  placeholder="Enter your username"
+                  type="email"
+                  placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="form-input w-full rounded-xl border border-[#dde1e3] bg-white h-14 p-[15px] text-base text-[#121416] placeholder-[#6a7681] focus:outline-none focus:ring-0"
+                  className="h-10 px-4 rounded-full border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
               </label>
-            </div>
 
-            <div className="flex flex-wrap gap-4 px-4 py-3">
-              <label className="flex flex-col w-full">
-                <p className="text-[#121416] text-base font-medium pb-2">Password</p>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-foreground">Password</span>
                 <input
                   type="password"
-                  placeholder="Enter your password"
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="form-input w-full rounded-xl border border-[#dde1e3] bg-white h-14 p-[15px] text-base text-[#121416] placeholder-[#6a7681] focus:outline-none focus:ring-0"
+                  onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                  className="h-10 px-4 rounded-full border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
               </label>
+
+              <p className="text-[13px] font-medium text-primary text-right cursor-pointer hover:underline">
+                Forgot password?
+              </p>
             </div>
 
-            <div className="px-4 py-3">
+            <div className="px-6 py-6 border-t border-border">
               <button
                 onClick={handleLogin}
                 disabled={loginLoading}
-                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold py-4 rounded-xl shadow-lg hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-12 bg-primary text-primary-foreground font-heading text-sm font-medium rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
-                {loginLoading ? 'Logging in...' : 'Login'}  
+                {loginLoading ? 'Signing in...' : 'Sign In'}
               </button>
             </div>
-
-            <p className="text-[#6a7681] text-sm text-center underline pt-1 px-4">
-              Forgot Password?
-            </p>
-            <p className="text-[#6a7681] text-sm text-center underline pt-1 px-4">
-              Need an account? <a href="/signup" className="text-blue-500">Sign Up</a>
-            </p>
           </div>
+
+          <p className="text-sm text-muted-foreground">
+            Don't have an account?{' '}
+            <a href="/signup" className="font-semibold text-primary hover:underline">Sign up</a>
+          </p>
         </div>
+      </div>
     </div>
   );
 }
 
 export default Login;
-
