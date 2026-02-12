@@ -5,18 +5,17 @@ from datetime import datetime
 from utils.BarcodeGenerator import BarcodeGenerator
 
 class PDFSheetGenerator:
-    def __init__(self, output_folder):
+    def __init__(self, output_folder, template=None):
         self.output_folder = output_folder
-        
-        # Hardcoded layout for Phase 1 (will be template-driven in Phase 2)
-        self.label_width = 2.5 * inch
-        self.label_height = 2.0 * inch
-        self.x_gap = 0.5 * inch
-        self.y_gap = 1.2 * inch
-        self.margin_left = 0.5 * inch
-        self.margin_top = 0.5 * inch
-        self.rows = 5
-        self.columns = 4
+        self.template = template or self._get_default_template()
+        self.label_width = self.template['label_width_inches'] * inch
+        self.label_height = self.template['label_height_inches'] * inch
+        self.x_gap = self.template['x_gap_inches'] * inch
+        self.y_gap = self.template['y_gap_inches'] * inch
+        self.margin_left = self.template['margin_left_inches'] * inch
+        self.margin_top = self.template['margin_top_inches'] * inch
+        self.rows = self.template['rows'] 
+        self.columns = self.template['columns']
         
     def generate_pdf_sheets(self, inventory):
         # Convert dict to list for indexing
@@ -27,7 +26,7 @@ class PDFSheetGenerator:
         num_sheets = (len(inventory_list) + labels_per_sheet - 1) // labels_per_sheet
         
         sheet_files = []
-        barcode_gen = BarcodeGenerator(2.5, 2.0, 600, {}, self.output_folder)
+        barcode_gen = BarcodeGenerator(self.template)
         
         # Generate each sheet
         for sheet_idx in range(num_sheets):
@@ -64,3 +63,7 @@ class PDFSheetGenerator:
             sheet_files.append(pdf_filename)
         
         return sheet_files
+    
+    def _get_default_template(self):
+        from config.settings import Config
+        return Config.LABEL_TEMPLATES[Config.DEFAULT_TEMPLATE]

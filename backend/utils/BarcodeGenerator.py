@@ -2,26 +2,27 @@ from reportlab.graphics.barcode import code128
 from reportlab.lib.units import inch
 
 class BarcodeGenerator:
-
-    # Changes to be made here later on, this will take in template values instead of hardcoded values.
-    def __init__(self, width_inches, height_inches, dpi, inventory, folder):
-        self.width_inches = width_inches
-        self.height_inches = height_inches
-        self.dpi = dpi
-        self.inventory = inventory
-        self.folder = folder
+    def __init__(self, template=None):
+        self.template = template
+        self.barcode_width_ratio = self.template['barcode_width_ratio'] 
+        self.barcode_height_inches = self.template['barcode_height_inches'] * inch
+        self.barcode_offset_y = self.template['barcode_offset_y_inches'] * inch
+        self.text_start_y = self.template['text_start_y_inches'] * inch
+        self.text_line_spacing = self.template['text_line_spacing_inches'] * inch
+        self.font = self.template['font']
+        self.font_size = self.template['font_size']
 
     def draw_label_to_canvas(self, canvas, x, y, location, part, unit):
-        """Draw a single label with barcode and text to the canvas at position (x, y)."""
         # Create barcode
-        barcode = code128.Code128(value=part, barHeight=0.8*inch, barWidth=1.5)
+        barcode = code128.Code128(value=part, 
+                                  barHeight=self.barcode_height_inches, 
+                                  barWidth=self.barcode_width_ratio
+                                )
 
         # Draw barcode directly to canvas (Code128 has drawOn method)
-        barcode.drawOn(canvas, x, y + 0.5*inch)
+        barcode.drawOn(canvas, x, y + self.barcode_offset_y)
 
         # Draw text below barcode
-        canvas.setFont('Helvetica', 10)
-        canvas.drawString(x, y + 0.3*inch, f'Location: {location}')
-        canvas.drawString(x, y + 0.1*inch, f'Unit: {unit}')
-
-        return canvas
+        canvas.setFont(self.font, self.font_size)
+        canvas.drawString(x, y + self.text_start_y, f'Location: {location}')
+        canvas.drawString(x, y + self.text_start_y - self.text_line_spacing, f'Unit: {unit}')
