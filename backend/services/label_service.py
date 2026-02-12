@@ -2,43 +2,11 @@ import pandas as pd
 import uuid
 import time
 import os
-import concurrent.futures
 import base64
 from flask import current_app
-from utils.BarcodeGenerator import BarcodeGenerator
-from utils.LabelSheetGenerator import LabelSheetGenerator
 from services.storage_service import upload_files_to_storage, create_zip_from_sheets, upload_zip_to_storage
+from utils.PDFSheetGenerator import PDFSheetGenerator
 from models.database import get_supabase_admin
-from utils.file_utils import cleanup_images_async
-from threading import Lock
-
-shared_generator = None
-file_lock = Lock()
-
-def init_shared_generator(width, height, dpi, inventory, folder):
-    global shared_generator
-    if shared_generator is None:
-        from utils.BarcodeGenerator import BarcodeGenerator
-        shared_generator = BarcodeGenerator(width, height, dpi, inventory, folder)
-    return shared_generator
-
-def thread_safe_barcode_worker(location, part, unit, image_folder):
-    try:
-        generator = init_shared_generator(2.5, 2.0, 600, {}, image_folder)
-        
-        with file_lock:
-            generator.generate_image(location, part, unit, image_folder)
-        
-        return True
-        
-    except Exception as e:
-        print(f"Failed to generate barcode for {location}: {e}")
-        return None
-
-def generate_barcode_worker(location, part, unit, folder):
-    generator = BarcodeGenerator(2.5, 2.0, 600, {}, folder)
-    generator.generate_image(location, part, unit, folder)
-    return f"Generated: {location}"
 
 def process_label_file(file, user_id, secure_filename):
 
@@ -84,66 +52,18 @@ def process_label_file(file, user_id, secure_filename):
             raise ValueError(f'Too many labels. Maximum: {current_app.config["MAX_LABELS"]}')
         
         # Process labels
+        print(f"Processing {label_count} labels...")
+
         start_time = time.time()
-        print(f"\n Processing {label_count} labels...")
-        
-        # Generate barcodes
-        max_workers = min(
-            current_app.config['MAX_CONCURRENT_WORKERS'], 
-            os.cpu_count() - 1, 
-            len(inventory)
-        )
-
-        print(f"Starting barcode generation with {max_workers} threads...")
-        
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {
-                executor.submit(
-                    thread_safe_barcode_worker, 
-                    location, part, unit, 
-                    current_app.config['IMAGE_FOLDER']
-                ): location for location, (part, unit) in inventory.items()
-            }
-
-            completed = 0
-            failed = 0
-    
-            for future in concurrent.futures.as_completed(futures):
-                location = futures[future]
-                try:
-                    result = future.result()
-                    if result:
-                        completed += 1
-                    else:
-                        failed += 1
-                except Exception as e:
-                    print(f"Thread failed for {location}: {e}")
-                    failed += 1
-
-        print(f"Barcode generation completed: {completed} success, {failed} failed")
-
-        barcode_time = time.time()
-        barcode_duration = barcode_time - start_time
 
         # Generate sheets
-        sheet_gen = LabelSheetGenerator(
-            220, 180, 35, 85, 5, 4, 
-            current_app.config['IMAGE_FOLDER']
-        )
-        sheet_gen.generate_sheet()
+        sheet_gen = PDFSheetGenerator(current_app.config['SHEET_FOLDER'])
+        sheets = sheet_gen.generate_pdf_sheets(inventory=inventory)
 
-        sheet_time = time.time()
-        sheet_duration = sheet_time - barcode_time
-        
-        # Move sheets to proper folder
-        sheets = [f for f in os.listdir('.') 
-                 if f.startswith('label_sheet') and f.endswith('.png')]
-        
-        for sheet in sheets:
-            os.rename(sheet, os.path.join(current_app.config['SHEET_FOLDER'], sheet))
-        
-        zip_start_time = time.time()
+        pdf_time = time.time() - start_time
+        print(f"PDF generation: {pdf_time:.2f}s")
 
+        zip_start = time.time()
         zip_buffer = create_zip_from_sheets(current_app.config['SHEET_FOLDER'], sheets)
 
         user_sheet_data = {
@@ -173,6 +93,9 @@ def process_label_file(file, user_id, secure_filename):
             'total_size_bytes': upload_result['zip_size'],
         }).eq('id', user_sheet_id).execute()
 
+        zip_time = time.time() - zip_start
+        print(f"ZIP & upload: {zip_time:.2f}s")
+
         sheet_file_data = {
             'user_sheet_id': user_sheet_id,
             'filename': f'sheets_{user_sheet_id}.zip',
@@ -182,26 +105,16 @@ def process_label_file(file, user_id, secure_filename):
         }
         get_supabase_admin().table('sheet_files').insert(sheet_file_data).execute()
 
-        zip_duration = time.time() - zip_start_time
-        
-        # Cleanup
         os.remove(filepath)
+
         for sheet in sheets:
             sheet_path = os.path.join(current_app.config['SHEET_FOLDER'], sheet)
             if os.path.exists(sheet_path):
                 os.remove(sheet_path)
-        
-        cleanup_images_async(current_app.config['IMAGE_FOLDER'])
-        
+
         total_time = time.time() - start_time
-        print(f"\n PERFORMANCE RESULTS:")
-        print(f"   Labels processed: {label_count}")
-        print(f"   Barcode generation: {barcode_duration:.2f}s")
-        print(f"   Sheet generation: {sheet_duration:.2f}s") 
-        print(f"   ZIP creation & upload: {zip_duration:.2f}s")
-        print(f"   Total time: {total_time:.2f}s")
-        print(f"   ZIP size: {upload_result['zip_size'] / 1024 / 1024:.2f} MB")
-        
+        print(f"Total processing time: {total_time:.2f}s")
+
         return {
             'success': True,
             'user_sheet_id': user_sheet_id,
@@ -216,7 +129,6 @@ def process_label_file(file, user_id, secure_filename):
         # Cleanup on error
         if os.path.exists(filepath):
             os.remove(filepath)
-        cleanup_images_async(current_app.config['IMAGE_FOLDER'])
         raise e
 
 def _upload_sheets_to_storage(user_id, filename, sheets, label_count):

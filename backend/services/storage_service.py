@@ -32,7 +32,7 @@ def create_zip_from_sheets(sheet_folder, sheets):
         for i, sheet_filename in enumerate(sheets):
             sheet_path = os.path.join(sheet_folder, sheet_filename)
             # Add to ZIP with a clean name
-            arcname = f"sheet_{i+1:03d}.png"
+            arcname = f"sheet_{i+1:03d}.pdf"
             zipf.write(sheet_path, arcname=arcname)
     
     zip_buffer.seek(0)

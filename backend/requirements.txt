@@ -8,3 +8,4 @@ python-barcode==0.15.1
 werkzeug==2.3.7
 tuspy  
 gunicorn 
+reportlab

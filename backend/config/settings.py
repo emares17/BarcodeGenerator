@@ -17,7 +17,6 @@ class Config:
     SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 
     UPLOAD_FOLDER = 'uploads'
-    IMAGE_FOLDER = 'images'
     SHEET_FOLDER = 'sheets'
     
     # Session configuration
@@ -44,6 +43,7 @@ class Config:
     ALLOWED_EXTENSIONS = {'.csv', '.xlsx', '.xls'}
     MAX_LABELS = 10000
     MAX_CONCURRENT_WORKERS = 6
+    USE_PDF_GENERATION = True
     
     # Rate limiting settings
     RATELIMIT_STORAGE_URL = os.getenv('REDIS_URL', 'memory://')
@@ -59,6 +59,7 @@ class Config:
 class DevelopmentConfig(Config):
     DEBUG = True
     SESSION_COOKIE_SECURE = False
+    USE_PDF_GENERATION = True
 
 class ProductionConfig(Config):
     DEBUG = False
@@ -78,3 +79,4 @@ class ProductionConfig(Config):
     # Stricter production settings
     MAX_FILE_SIZE = 25 * 1024 * 1024  # 25MB in production
     MAX_LABELS = 5000  # Lower limit in production
+    USE_PDF_GENERATION = False
