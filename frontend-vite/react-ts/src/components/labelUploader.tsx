@@ -33,6 +33,14 @@ function LabelUploader() {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [processingStatus, setProcessingStatus] = useState<string>('');
   const [isDragOver, setIsDragOver] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState('standard_20');
+
+  const templates = [
+    { id: 'standard_20', name: 'Standard', desc: '20 labels per sheet', size: '1.75" x 1.8"', grid: '5 x 4', rows: 5, cols: 4 },
+    { id: '5163', name: 'Avery 5163', desc: '10 labels per sheet', size: '2" x 4"', grid: '5 x 2', rows: 5, cols: 2 },
+    { id: '5160', name: 'Avery 5160', desc: '30 labels per sheet', size: '1" x 2 5/8"', grid: '10 x 3', rows: 10, cols: 3 },
+    { id: '22817', name: 'Avery 22817', desc: '12 labels per sheet', size: '2.5" x 2.5"', grid: '4 x 3', rows: 4, cols: 3 },
+  ];
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -193,6 +201,7 @@ function LabelUploader() {
 
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('template_id', selectedTemplate);
 
     setLoading(true);
     setError('');
@@ -356,6 +365,54 @@ function LabelUploader() {
               <p className="text-sm text-success-foreground">{success}</p>
             </div>
           )}
+        </div>
+
+        {/* Template Selector */}
+        <div className="px-6 py-5 border-t border-border">
+          <h3 className="font-heading text-sm font-semibold text-foreground mb-1">Select Label Template</h3>
+          <p className="text-xs text-muted-foreground mb-4">Choose a template that matches your label sheets</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {templates.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setSelectedTemplate(t.id)}
+                className={`relative flex flex-col items-start p-3 rounded-[16px] border-2 transition-all cursor-pointer bg-card text-left ${
+                  selectedTemplate === t.id
+                    ? 'border-primary shadow-sm'
+                    : 'border-border hover:border-muted-foreground/30'
+                }`}
+              >
+                {selectedTemplate === t.id && (
+                  <span className="absolute top-2 right-2 bg-primary text-primary-foreground font-heading text-[9px] font-semibold px-2 py-0.5 rounded-full tracking-wide">
+                    DEFAULT
+                  </span>
+                )}
+                <span className="font-heading text-xs font-semibold text-foreground">{t.name}</span>
+                <span className="text-[11px] text-muted-foreground mt-0.5">{t.desc}</span>
+
+                {/* Grid Preview */}
+                <div className="w-full mt-2 bg-secondary/50 rounded-[12px] p-2 aspect-[4/3]">
+                  <div className="w-full h-full grid gap-[3px]" style={{ gridTemplateRows: `repeat(${Math.min(t.rows, 6)}, 1fr)`, gridTemplateColumns: `repeat(${t.cols}, 1fr)` }}>
+                    {Array.from({ length: Math.min(t.rows, 6) * t.cols }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`rounded-[2px] ${
+                          selectedTemplate === t.id
+                            ? 'bg-primary/15 border border-primary/30'
+                            : 'bg-secondary border border-border'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex justify-between w-full mt-2">
+                  <span className="text-[10px] text-muted-foreground">{t.size}</span>
+                  <span className={`font-heading text-[10px] font-medium ${selectedTemplate === t.id ? 'text-primary' : 'text-muted-foreground'}`}>{t.grid}</span>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Upload Action */}

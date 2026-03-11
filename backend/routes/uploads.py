@@ -30,11 +30,18 @@ def upload_file():
         if not is_valid:
             return jsonify({'error': result}), 400
         
-        secure_filename_result = result 
+        secure_filename_result = result
+
+        # Validate template_id if provided
+        template_id = request.form.get('template_id', current_app.config['DEFAULT_TEMPLATE'])
+        templates = current_app.config['LABEL_TEMPLATES']
+        if template_id not in templates:
+            valid = ', '.join(templates.keys())
+            return jsonify({'error': f"Invalid template_id '{template_id}'. Valid templates: {valid}"}), 400
 
         # Process labels
-        result = process_label_file(file, user_id, secure_filename_result) 
-        
+        result = process_label_file(file, user_id, secure_filename_result, template_id=template_id)
+
         return jsonify(result)
     
     except ValueError as e:

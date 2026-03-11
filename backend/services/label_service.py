@@ -8,7 +8,7 @@ from services.storage_service import upload_files_to_storage, create_zip_from_sh
 from utils.PDFSheetGenerator import PDFSheetGenerator
 from models.database import get_supabase_admin
 
-def process_label_file(file, user_id, secure_filename):
+def process_label_file(file, user_id, secure_filename, template_id=None):
 
     print(f"Starting process_label_file for user {user_id}")
 
@@ -57,7 +57,10 @@ def process_label_file(file, user_id, secure_filename):
         start_time = time.time()
 
         # Generate sheets
-        sheet_gen = PDFSheetGenerator(current_app.config['SHEET_FOLDER'])
+        template = None
+        if template_id:
+            template = current_app.config['LABEL_TEMPLATES'][template_id]
+        sheet_gen = PDFSheetGenerator(current_app.config['SHEET_FOLDER'], template)
         sheets = sheet_gen.generate_pdf_sheets(inventory=inventory)
 
         pdf_time = time.time() - start_time
@@ -120,6 +123,7 @@ def process_label_file(file, user_id, secure_filename):
             'user_sheet_id': user_sheet_id,
             'storage_path': upload_result['storage_path'],
             'zip_size': upload_result['zip_size'],
+            'template_used': template_id or current_app.config['DEFAULT_TEMPLATE'],
             'label_count': label_count,
             'sheet_count': len(sheets),
             'message': f'Successfully processed {label_count} labels and uploaded as ZIP'

@@ -57,6 +57,25 @@ class Config:
     }
 
     LABEL_TEMPLATES = {
+        'standard_20': {
+            'name': 'Standard - 20 Labels',
+            'dimensions': '1.75" x 1.8"',
+            'label_width_inches': 1.75,
+            'label_height_inches': 1.8,
+            'rows': 5,
+            'columns': 4,
+            'margin_top_inches': 0.5,
+            'margin_left_inches': 0.5,
+            'x_gap_inches': 0.25,
+            'y_gap_inches': 0.2,
+            'barcode_width_ratio': 1.2,
+            'barcode_height_inches': 0.7,
+            'barcode_offset_y_inches': 0.5,
+            'text_start_y_inches': 0.3,
+            'text_line_spacing_inches': 0.15,
+            'font': 'Helvetica',
+            'font_size': 8
+        },
         '5163': {
             'name': '5163 - Shipping Labels',
             'dimensions' : '2" x 4"',
@@ -116,7 +135,7 @@ class Config:
         }
     }
 
-    DEFAULT_TEMPLATE = '5163'
+    DEFAULT_TEMPLATE = 'standard_20'
 
 class DevelopmentConfig(Config):
     DEBUG = True
