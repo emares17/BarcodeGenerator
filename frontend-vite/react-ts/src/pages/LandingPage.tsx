@@ -11,6 +11,7 @@ import {
   Upload,
   Cpu,
 } from 'lucide-react';
+import BarcodeWidget from '../components/BarcodeWidget';
 
 function LandingPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -236,6 +237,25 @@ function LandingPage() {
               </g>
             </svg>
           </div>
+        </div>
+      </section>
+
+      {/* Try It Now Section */}
+      <section id="try-it" className="px-6 md:px-20 py-12 md:py-16">
+        <div className="flex flex-col items-center gap-8">
+          <div className="text-center max-w-xl">
+            <span className="inline-flex items-center gap-2 bg-secondary text-primary font-body text-[13px] font-semibold rounded-full px-4 py-1.5 mb-3">
+              <ScanBarcode className="w-3.5 h-3.5" />
+              Free Tool
+            </span>
+            <h2 className="font-heading text-2xl md:text-[32px] font-bold text-foreground leading-tight">
+              Try It Now — Generate a Barcode Instantly
+            </h2>
+            <p className="mt-3 text-base text-muted-foreground leading-relaxed">
+              Free, no signup required. Generate and download barcodes in seconds.
+            </p>
+          </div>
+          <BarcodeWidget />
         </div>
       </section>
 

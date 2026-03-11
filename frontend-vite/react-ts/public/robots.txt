@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /upload
+
+Sitemap: https://labelgenius.up.railway.app/sitemap.xml
