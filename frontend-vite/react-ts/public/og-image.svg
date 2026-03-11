@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#F2F3F0"/>
+  <rect x="0" y="0" width="1200" height="6" fill="#FF8400"/>
+
+  <!-- Barcode illustration -->
+  <g transform="translate(160, 200)">
+    <rect x="0" y="0" width="4" height="120" fill="#111111"/>
+    <rect x="8" y="0" width="2" height="120" fill="#111111"/>
+    <rect x="14" y="0" width="6" height="120" fill="#111111"/>
+    <rect x="24" y="0" width="3" height="120" fill="#111111"/>
+    <rect x="30" y="0" width="1" height="120" fill="#111111"/>
+    <rect x="35" y="0" width="5" height="120" fill="#111111"/>
+    <rect x="44" y="0" width="2" height="120" fill="#111111"/>
+    <rect x="50" y="0" width="4" height="120" fill="#111111"/>
+    <rect x="58" y="0" width="1" height="120" fill="#111111"/>
+    <rect x="63" y="0" width="3" height="120" fill="#111111"/>
+    <rect x="70" y="0" width="6" height="120" fill="#111111"/>
+    <rect x="80" y="0" width="2" height="120" fill="#111111"/>
+    <rect x="86" y="0" width="4" height="120" fill="#111111"/>
+    <rect x="94" y="0" width="1" height="120" fill="#111111"/>
+    <rect x="99" y="0" width="5" height="120" fill="#111111"/>
+    <rect x="108" y="0" width="3" height="120" fill="#111111"/>
+    <rect x="115" y="0" width="2" height="120" fill="#111111"/>
+    <rect x="121" y="0" width="4" height="120" fill="#111111"/>
+    <rect x="129" y="0" width="1" height="120" fill="#111111"/>
+    <rect x="134" y="0" width="6" height="120" fill="#111111"/>
+  </g>
+
+  <!-- Logo + Text -->
+  <text x="380" y="250" font-family="'JetBrains Mono', monospace" font-size="52" font-weight="800" fill="#111111">LabelGenius</text>
+  <text x="380" y="310" font-family="'Inter', 'Segoe UI', sans-serif" font-size="26" fill="#6B7280">Free Barcode Generator &amp; Label Maker</text>
+
+  <!-- Feature pills -->
+  <g transform="translate(380, 350)">
+    <rect x="0" y="0" width="120" height="36" rx="18" fill="#FF8400" opacity="0.12"/>
+    <text x="60" y="24" font-family="'Inter', sans-serif" font-size="14" font-weight="600" fill="#FF8400" text-anchor="middle">Code 128</text>
+
+    <rect x="136" y="0" width="110" height="36" rx="18" fill="#FF8400" opacity="0.12"/>
+    <text x="191" y="24" font-family="'Inter', sans-serif" font-size="14" font-weight="600" fill="#FF8400" text-anchor="middle">QR Code</text>
+
+    <rect x="262" y="0" width="110" height="36" rx="18" fill="#FF8400" opacity="0.12"/>
+    <text x="317" y="24" font-family="'Inter', sans-serif" font-size="14" font-weight="600" fill="#FF8400" text-anchor="middle">EAN-13</text>
+
+    <rect x="388" y="0" width="100" height="36" rx="18" fill="#FF8400" opacity="0.12"/>
+    <text x="438" y="24" font-family="'Inter', sans-serif" font-size="14" font-weight="600" fill="#FF8400" text-anchor="middle">UPC-A</text>
+
+    <rect x="504" y="0" width="110" height="36" rx="18" fill="#FF8400" opacity="0.12"/>
+    <text x="559" y="24" font-family="'Inter', sans-serif" font-size="14" font-weight="600" fill="#FF8400" text-anchor="middle">Code 39</text>
+  </g>
+
+  <!-- Tagline -->
+  <text x="380" y="440" font-family="'Inter', sans-serif" font-size="18" fill="#6B7280">CSV/Excel → Print-Ready Barcode Labels in Seconds</text>
+
+  <!-- URL -->
+  <text x="600" y="580" font-family="'JetBrains Mono', monospace" font-size="16" fill="#CBCCC9" text-anchor="middle">labelgenius.up.railway.app</text>
+</svg>
