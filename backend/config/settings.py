@@ -10,7 +10,7 @@ class Config:
     if not SECRET_KEY or SECRET_KEY == 'secret-key':
         if os.getenv('FLASK_ENV') == 'production':
             raise ValueError("Production SECRET_KEY must be set and secure!")
-        SECRET_KEY = os.urandom(24).hex() 
+        SECRET_KEY = 'dev-only-secret-key-do-not-use-in-prod'
 
     SUPABASE_URL = os.getenv("SUPABASE_URL")
     SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY") 
@@ -43,7 +43,6 @@ class Config:
     ALLOWED_EXTENSIONS = {'.csv', '.xlsx', '.xls'}
     MAX_LABELS = 10000
     MAX_CONCURRENT_WORKERS = 6
-    USE_PDF_GENERATION = True
     
     # Rate limiting settings
     RATELIMIT_STORAGE_URL = os.getenv('REDIS_URL', 'memory://')
@@ -64,17 +63,18 @@ class Config:
             'label_height_inches': 1.8,
             'rows': 5,
             'columns': 4,
-            'margin_top_inches': 0.5,
-            'margin_left_inches': 0.5,
+            'margin_top_inches': 0.4,
+            'margin_left_inches': 0.4,
             'x_gap_inches': 0.25,
             'y_gap_inches': 0.2,
-            'barcode_width_ratio': 1.2,
-            'barcode_height_inches': 0.7,
+            'padding_x_inches': 0.05,
+            'barcode_height_inches': 0.8,
             'barcode_offset_y_inches': 0.5,
             'text_start_y_inches': 0.3,
             'text_line_spacing_inches': 0.15,
             'font': 'Helvetica',
-            'font_size': 8
+            'font_size': 8,
+            'max_text_lines': 2
         },
         '5163': {
             'name': '5163 - Shipping Labels',
@@ -87,16 +87,17 @@ class Config:
             'margin_left_inches': 0.16,
             'x_gap_inches': 0.14,
             'y_gap_inches': 0.0,
-            'barcode_width_ratio': 1.5,
+            'padding_x_inches': 0.2,
             'barcode_height_inches': 0.8,
-            'barcode_offset_y_inches': 0.5,
-            'text_start_y_inches': 0.3,
+            'barcode_offset_y_inches': 0.7,
+            'text_start_y_inches': 0.45,
             'text_line_spacing_inches': 0.2,
             'font': 'Helvetica',
-            'font_size': 10
+            'font_size': 10,
+            'max_text_lines': 2
         },
         '5160': {
-            'name': '5160 - Shipping Labels',
+            'name': '5160 - Address Labels',
             'dimensions' : '1" x 2 5/8"',
             'label_width_inches': 2.6,
             'label_height_inches': 1.0,
@@ -106,32 +107,34 @@ class Config:
             'margin_left_inches': 0.19,
             'x_gap_inches': 0.125,
             'y_gap_inches': 0.0,
-            'barcode_width_ratio': 1.0,
+            'padding_x_inches': 0.1,
             'barcode_height_inches': 0.4,
-            'barcode_offset_y_inches': 0.2,
-            'text_start_y_inches': 0.1,
+            'barcode_offset_y_inches': 0.3,
+            'text_start_y_inches': 0.15,
             'text_line_spacing_inches': 0.1,
             'font': 'Helvetica',
-            'font_size': 8
+            'font_size': 8,
+            'max_text_lines': 1
         },
-        '22817': {
-            'name': '22817 - Shipping Labels',
+        '94233': {
+            'name': '94233 - Rectangle Labels',
             'dimensions' : '2 1/2" x 2 1/2"',
             'label_width_inches': 2.5,
             'label_height_inches': 2.5,
             'rows': 4,
             'columns': 3,
-            'margin_top_inches': 0.5,
-            'margin_left_inches': 0.5,
+            'margin_top_inches': 0.3,
+            'margin_left_inches': 0.3,
             'x_gap_inches': 0.125,
             'y_gap_inches': 0.125,
-            'barcode_width_ratio': 1.5,
-            'barcode_height_inches': 1.0,
-            'barcode_offset_y_inches': 0.6,
-            'text_start_y_inches': 0.4,
+            'padding_x_inches': 0.15,
+            'barcode_height_inches': 0.8,
+            'barcode_offset_y_inches': 1.1,
+            'text_start_y_inches': 0.85,
             'text_line_spacing_inches': 0.2,
             'font': 'Helvetica',
-            'font_size': 10
+            'font_size': 10,
+            'max_text_lines': 2
         }
     }
 
@@ -140,7 +143,6 @@ class Config:
 class DevelopmentConfig(Config):
     DEBUG = True
     SESSION_COOKIE_SECURE = False
-    USE_PDF_GENERATION = True
 
 class ProductionConfig(Config):
     DEBUG = False
@@ -160,4 +162,3 @@ class ProductionConfig(Config):
     # Stricter production settings
     MAX_FILE_SIZE = 25 * 1024 * 1024  # 25MB in production
     MAX_LABELS = 5000  # Lower limit in production
-    USE_PDF_GENERATION = False

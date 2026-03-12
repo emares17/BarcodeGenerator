@@ -2,18 +2,28 @@ import pandas as pd
 import uuid
 import time
 import os
-import base64
 from flask import current_app
-from services.storage_service import upload_files_to_storage, create_zip_from_sheets, upload_zip_to_storage
+from services.storage_service import create_zip_from_sheets, upload_zip_to_storage
 from utils.PDFSheetGenerator import PDFSheetGenerator
 from models.database import get_supabase_admin
 import logging
 
 logger = logging.getLogger(__name__)
 
-def process_label_file(file, user_id, secure_filename, template_id=None):
+def process_label_file(file, user_id, secure_filename, template_id=None, column_mapping=None):
 
     logger.info("Starting process_label_file for user %s", user_id)
+
+    # Default column mapping (legacy behavior)
+    if not column_mapping:
+        column_mapping = {
+            'barcode_column': 1,
+            'text_columns': [
+                {'column': 0, 'label': 'Location'},
+                {'column': 3, 'label': 'Unit'}
+            ],
+            'has_header_row': False
+        }
 
     # Save uploaded file
     ext = os.path.splitext(secure_filename)[1]
@@ -23,36 +33,45 @@ def process_label_file(file, user_id, secure_filename, template_id=None):
     file.save(filepath)
 
     logger.info("File saved successfully to %s", filepath)
-    
+
     try:
         # Parse file
+        header_arg = 0 if column_mapping.get('has_header_row') else None
         if secure_filename.endswith(('.xlsx', '.xls')):
-            df = pd.read_excel(filepath, header=None)
+            df = pd.read_excel(filepath, header=header_arg)
         else:
-            df = pd.read_csv(filepath, header=None)
+            df = pd.read_csv(filepath, header=header_arg)
         logger.info("File parsed successfully, shape: %s", df.shape)
-        
-        # Validate and process data
-        inventory = {}
+
+        barcode_col = column_mapping['barcode_column']
+        text_cols = column_mapping.get('text_columns', [])
+
+        # Extract labels using dynamic column mapping
+        labels = []
         for _, row in df.iterrows():
-            location = str(row.iloc[0]).strip()[:100]
-            part = str(row.iloc[1]).strip()[:100]
-            unit = str(row.iloc[3]).strip()[:100] if len(row) > 3 else ""
-            
-            if not location or not part:
+            if barcode_col >= len(row):
                 continue
-                
-            inventory[location] = (part, unit)
-        
-        if not inventory:
+            barcode_value = str(row.iloc[barcode_col]).strip()[:100]
+            if not barcode_value or barcode_value == 'nan':
+                continue
+
+            text_lines = []
+            for tc in text_cols:
+                col_idx = tc['column']
+                if col_idx < len(row):
+                    val = str(row.iloc[col_idx]).strip()[:100]
+                    if val and val != 'nan':
+                        text_lines.append((tc['label'], val))
+            labels.append((barcode_value, text_lines))
+
+        if not labels:
             raise ValueError('No valid data found in file')
-        
-        label_count = len(inventory)
+
+        label_count = len(labels)
         if label_count > current_app.config['MAX_LABELS']:
             raise ValueError(f'Too many labels. Maximum: {current_app.config["MAX_LABELS"]}')
-        
-        # Process labels
-        print(f"Processing {label_count} labels...")
+
+        logger.info("Processing %d labels...", label_count)
 
         start_time = time.time()
 
@@ -61,10 +80,10 @@ def process_label_file(file, user_id, secure_filename, template_id=None):
         if template_id:
             template = current_app.config['LABEL_TEMPLATES'][template_id]
         sheet_gen = PDFSheetGenerator(current_app.config['SHEET_FOLDER'], template)
-        sheets = sheet_gen.generate_pdf_sheets(inventory=inventory)
+        sheets = sheet_gen.generate_pdf_sheets(labels)
 
         pdf_time = time.time() - start_time
-        print(f"PDF generation: {pdf_time:.2f}s")
+        logger.info("PDF generation: %.2fs", pdf_time)
 
         zip_start = time.time()
         zip_buffer = create_zip_from_sheets(current_app.config['SHEET_FOLDER'], sheets)
@@ -97,7 +116,7 @@ def process_label_file(file, user_id, secure_filename, template_id=None):
         }).eq('id', user_sheet_id).execute()
 
         zip_time = time.time() - zip_start
-        print(f"ZIP & upload: {zip_time:.2f}s")
+        logger.info("ZIP & upload: %.2fs", zip_time)
 
         sheet_file_data = {
             'user_sheet_id': user_sheet_id,
@@ -116,7 +135,7 @@ def process_label_file(file, user_id, secure_filename, template_id=None):
                 os.remove(sheet_path)
 
         total_time = time.time() - start_time
-        print(f"Total processing time: {total_time:.2f}s")
+        logger.info("Total processing time: %.2fs", total_time)
 
         return {
             'success': True,
@@ -134,65 +153,3 @@ def process_label_file(file, user_id, secure_filename, template_id=None):
         if os.path.exists(filepath):
             os.remove(filepath)
         raise 
-
-def _upload_sheets_to_storage(user_id, filename, sheets, label_count):
-    supabase_admin = get_supabase_admin()
-    
-    # Create user_sheets record
-    user_sheet_data = {
-        'user_id': user_id,
-        'original_filename': filename,
-        'label_count': label_count,
-        'sheet_count': len(sheets),
-        'total_size_bytes': 0
-    }
-    
-    sheet_response = supabase_admin.table('user_sheets').insert(user_sheet_data).execute()
-    
-    if not sheet_response.data:
-        raise Exception("Failed to create user_sheets record")
-        
-    user_sheet_id = sheet_response.data[0]['id']
-    
-    # Prepare file data
-    file_data = []
-    total_size = 0
-    
-    for i, sheet_filename in enumerate(sheets):
-        sheet_path = os.path.join(current_app.config['SHEET_FOLDER'], sheet_filename)
-        file_size = os.path.getsize(sheet_path)
-        total_size += file_size
-        
-        with open(sheet_path, 'rb') as f:
-            file_content = f.read()
-            base64_content = base64.b64encode(file_content).decode('utf-8')
-        
-        file_data.append({
-            'filename': sheet_filename,
-            'content': base64_content,
-            'size': file_size,
-            'sheet_number': i + 1
-        })
-    
-    # Upload files
-    upload_result = upload_files_to_storage(user_id, user_sheet_id, file_data)
-    
-    if not upload_result['success']:
-        # Cleanup on failure
-        supabase_admin.table('user_sheets').delete().eq('id', user_sheet_id).execute()
-        raise Exception(f'Upload failed: {upload_result["errors"]}')
-    
-    # Update total size
-    supabase_admin.table('user_sheets').update({
-        'total_size_bytes': total_size
-    }).eq('id', user_sheet_id).execute()
-    
-    return {
-        'success': True,
-        'user_sheet_id': user_sheet_id,
-        'files_uploaded': upload_result['total_uploaded'],
-        'total_size': total_size,
-        'label_count': label_count,
-        'sheet_count': len(sheets),
-        'message': f'Successfully processed {label_count} labels and uploaded {upload_result["total_uploaded"]} sheets'
-    }

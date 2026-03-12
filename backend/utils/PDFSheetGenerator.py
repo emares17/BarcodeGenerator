@@ -1,10 +1,13 @@
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.units import inch
+from reportlab.lib.colors import lightgrey
 from datetime import datetime
 from utils.BarcodeGenerator import BarcodeGenerator
 
 class PDFSheetGenerator:
+    DEBUG_GRID = False  # Set to False to hide label boundaries
+
     def __init__(self, output_folder, template=None):
         self.output_folder = output_folder
         self.template = template or self._get_default_template()
@@ -14,56 +17,63 @@ class PDFSheetGenerator:
         self.y_gap = self.template['y_gap_inches'] * inch
         self.margin_left = self.template['margin_left_inches'] * inch
         self.margin_top = self.template['margin_top_inches'] * inch
-        self.rows = self.template['rows'] 
+        self.rows = self.template['rows']
         self.columns = self.template['columns']
         
-    def generate_pdf_sheets(self, inventory):
-        # Convert dict to list for indexing
-        inventory_list = list(inventory.items())
-        
+    def generate_pdf_sheets(self, labels):
+        # labels: list of (barcode_value, [(label, value), ...]) tuples
+
         # Calculate sheets needed
-        labels_per_sheet = self.rows * self.columns  # 20
-        num_sheets = (len(inventory_list) + labels_per_sheet - 1) // labels_per_sheet
-        
+        labels_per_sheet = self.rows * self.columns
+        num_sheets = (len(labels) + labels_per_sheet - 1) // labels_per_sheet
+
         sheet_files = []
         barcode_gen = BarcodeGenerator(self.template)
-        
+
+        # Calibrate uniform barWidth based on longest barcode value
+        all_parts = [bv for bv, _ in labels]
+        barcode_gen.calibrate(all_parts)
+
         # Generate each sheet
         for sheet_idx in range(num_sheets):
-            # Create timestamp for unique filename
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             pdf_filename = f"label_sheet_{timestamp}_{sheet_idx + 1}.pdf"
             pdf_path = f"{self.output_folder}/{pdf_filename}"
-            
-            # Create PDF canvas
+
             c = canvas.Canvas(pdf_path, pagesize=LETTER)
-            
-            # Calculate label range for this sheet
+
             start = sheet_idx * labels_per_sheet
-            end = min(start + labels_per_sheet, len(inventory_list))
-            
-            # Draw each label on this sheet
+            end = min(start + labels_per_sheet, len(labels))
+
+            if self.DEBUG_GRID:
+                self._draw_debug_grid(c)
+
             for i in range(start, end):
-                location, (part, unit) = inventory_list[i]
-                
-                # Calculate grid position
+                barcode_value, text_lines = labels[i]
+
                 position_in_sheet = i - start
                 row = position_in_sheet // self.columns
                 col = position_in_sheet % self.columns
-                
-                # Calculate x, y coordinates 
+
                 x = self.margin_left + col * (self.label_width + self.x_gap)
                 y = LETTER[1] - self.margin_top - (row + 1) * self.label_height - row * self.y_gap
-                
-                # Draw the label
-                barcode_gen.draw_label_to_canvas(c, x, y, location, part, unit)
-            
-            # Save the PDF
+
+                barcode_gen.draw_label_to_canvas(c, x, y, barcode_value, text_lines)
+
             c.save()
             sheet_files.append(pdf_filename)
-        
+
         return sheet_files
     
+    def _draw_debug_grid(self, c):
+        c.setStrokeColor(lightgrey)
+        c.setLineWidth(0.5)
+        for row in range(self.rows):
+            for col in range(self.columns):
+                x = self.margin_left + col * (self.label_width + self.x_gap)
+                y = LETTER[1] - self.margin_top - (row + 1) * self.label_height - row * self.y_gap
+                c.rect(x, y, self.label_width, self.label_height)
+
     def _get_default_template(self):
         from config.settings import Config
         return Config.LABEL_TEMPLATES[Config.DEFAULT_TEMPLATE]
