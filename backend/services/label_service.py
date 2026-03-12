@@ -7,30 +7,30 @@ from flask import current_app
 from services.storage_service import upload_files_to_storage, create_zip_from_sheets, upload_zip_to_storage
 from utils.PDFSheetGenerator import PDFSheetGenerator
 from models.database import get_supabase_admin
+import logging
+
+logger = logging.getLogger(__name__)
 
 def process_label_file(file, user_id, secure_filename, template_id=None):
 
-    print(f"Starting process_label_file for user {user_id}")
+    logger.info("Starting process_label_file for user %s", user_id)
 
     # Save uploaded file
     ext = os.path.splitext(secure_filename)[1]
     saved_name = f"{uuid.uuid4().hex}{ext}"
     filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], saved_name)
 
-    print(f"Saving file to: {filepath}")
-
     file.save(filepath)
 
-    print(f"File saved successfully")
+    logger.info("File saved successfully to %s", filepath)
     
     try:
         # Parse file
         if secure_filename.endswith(('.xlsx', '.xls')):
-            print(f"Starting file parsing...")
             df = pd.read_excel(filepath, header=None)
         else:
             df = pd.read_csv(filepath, header=None)
-        print(f"File parsed successfully, shape: {df.shape}")
+        logger.info("File parsed successfully, shape: %s", df.shape)
         
         # Validate and process data
         inventory = {}
@@ -130,10 +130,10 @@ def process_label_file(file, user_id, secure_filename, template_id=None):
         }
         
     except Exception as e:
-        # Cleanup on error
+        logger.error("Processing failed, cleaning up temp files.")
         if os.path.exists(filepath):
             os.remove(filepath)
-        raise e
+        raise 
 
 def _upload_sheets_to_storage(user_id, filename, sheets, label_count):
     supabase_admin = get_supabase_admin()

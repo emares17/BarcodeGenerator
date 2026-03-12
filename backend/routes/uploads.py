@@ -1,10 +1,12 @@
 from flask import current_app, Blueprint, request, jsonify
 from auth.decorators import verify_session_auth
 from services.label_service import process_label_file
-from utils.file_utils import validate_upload_file
 from utils.security import validate_file_security, rate_limit, sanitize_input
+import logging
 
 uploads_bp = Blueprint('uploads', __name__)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 @uploads_bp.route('/upload', methods=['POST'])
 @rate_limit("5 per hour")     # Updated: Team-friendly rate limit
@@ -14,23 +16,25 @@ def upload_file():
     try:
         # Get and validate file
         if 'file' not in request.files:
+            logger.warning("No file provided.")
             return jsonify({'error': 'No file provided'}), 400
         
         file = request.files['file']
         user_id = request.user_id
         
-        # Quick monkey protection - file size check
         file_size_mb = len(file.read()) / (1024 * 1024)
         file.seek(0)  # Reset file pointer
         if file_size_mb > 25:  # 25MB limit for team usage
+            logger.warning("File size was too large, exceeded the maximum 25MB.")
             return jsonify({'error': 'File too large. Maximum 25MB.'}), 400
         
         # Validate file
         is_valid, result = validate_file_security(file)
         if not is_valid:
+            logger.warning("File security validation failed: %s", result)
             return jsonify({'error': result}), 400
         
-        secure_filename_result = result
+        secure_filename_result = sanitize_input(result) 
 
         # Validate template_id if provided
         template_id = request.form.get('template_id', current_app.config['DEFAULT_TEMPLATE'])
@@ -45,10 +49,10 @@ def upload_file():
         return jsonify(result)
     
     except ValueError as e:
-        current_app.logger.warning(f"Upload validation error for user {request.user_id}")
+        logger.warning("Upload validation error for user %s", request.user_id)
         return jsonify({'error': str(e)}), 400
     except Exception as e:
-        current_app.logger.error(f"Error processing upload for user {request.user_id}: {e}")
+        logger.exception("Error processing upload for user %s", request.user_id)
         return jsonify({'error': 'An error occurred processing your file'}), 500
 
 @uploads_bp.route('/test-storage-service', methods=['POST'])
