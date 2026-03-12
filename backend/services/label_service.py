@@ -11,9 +11,12 @@ from services.storage_service import upload_files_to_storage, create_zip_from_sh
 from models.database import get_supabase_admin
 from utils.file_utils import cleanup_images_async
 from threading import Lock
+import logging
 
 shared_generator = None
 file_lock = Lock()
+
+logger = logging.getLogger(__name__)
 
 def init_shared_generator(width, height, dpi, inventory, folder):
     global shared_generator
@@ -32,7 +35,7 @@ def thread_safe_barcode_worker(location, part, unit, image_folder):
         return True
         
     except Exception as e:
-        print(f"Failed to generate barcode for {location}: {e}")
+        logger.exception("Failed to generate barcode for %s", location)
         return None
 
 def generate_barcode_worker(location, part, unit, folder):
@@ -42,27 +45,24 @@ def generate_barcode_worker(location, part, unit, folder):
 
 def process_label_file(file, user_id, secure_filename):
 
-    print(f"Starting process_label_file for user {user_id}")
+    logger.info("Starting process_label_file for user %s", user_id)
 
     # Save uploaded file
     ext = os.path.splitext(secure_filename)[1]
     saved_name = f"{uuid.uuid4().hex}{ext}"
     filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], saved_name)
 
-    print(f"Saving file to: {filepath}")
-
     file.save(filepath)
 
-    print(f"File saved successfully")
+    logger.info("File saved successfully to %s", filepath)
     
     try:
         # Parse file
         if secure_filename.endswith(('.xlsx', '.xls')):
-            print(f"Starting file parsing...")
             df = pd.read_excel(filepath, header=None)
         else:
             df = pd.read_csv(filepath, header=None)
-        print(f"File parsed successfully, shape: {df.shape}")
+        logger.info("File parsed successfully, shape: %s", df.shape)
         
         # Validate and process data
         inventory = {}
@@ -85,7 +85,7 @@ def process_label_file(file, user_id, secure_filename):
         
         # Process labels
         start_time = time.time()
-        print(f"\n Processing {label_count} labels...")
+        logger.info("Processing %d labels...", label_count)
         
         # Generate barcodes
         max_workers = min(
@@ -94,7 +94,7 @@ def process_label_file(file, user_id, secure_filename):
             len(inventory)
         )
 
-        print(f"Starting barcode generation with {max_workers} threads...")
+        logger.info("Starting barcode generation with %d threads...", max_workers)
         
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = {
@@ -117,10 +117,10 @@ def process_label_file(file, user_id, secure_filename):
                     else:
                         failed += 1
                 except Exception as e:
-                    print(f"Thread failed for {location}: {e}")
+                    logger.exception("Thread failed for '%s'", location)
                     failed += 1
 
-        print(f"Barcode generation completed: {completed} success, {failed} failed")
+        logger.info("Barcode generation completed: %s success, %s failed", completed, failed)
 
         barcode_time = time.time()
         barcode_duration = barcode_time - start_time
@@ -213,11 +213,11 @@ def process_label_file(file, user_id, secure_filename):
         }
         
     except Exception as e:
-        # Cleanup on error
+        logger.error("Processing failed, cleaning up temp files.")
         if os.path.exists(filepath):
             os.remove(filepath)
         cleanup_images_async(current_app.config['IMAGE_FOLDER'])
-        raise e
+        raise 
 
 def _upload_sheets_to_storage(user_id, filename, sheets, label_count):
     supabase_admin = get_supabase_admin()
