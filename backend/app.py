@@ -70,8 +70,7 @@ def create_app(config_name='development'):
     
     # Ensure folders exist
     folders = [
-        app.config['UPLOAD_FOLDER'],
-        app.config['IMAGE_FOLDER'], 
+        app.config['UPLOAD_FOLDER'], 
         app.config['SHEET_FOLDER']
     ]
     for folder in folders:

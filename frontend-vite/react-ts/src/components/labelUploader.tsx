@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { ChangeEvent } from 'react';
 import axios from 'axios';
-import { Upload, Download, Trash2, RefreshCw, FileSpreadsheet, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Upload, Download, Trash2, RefreshCw, FileSpreadsheet, AlertCircle, CheckCircle2, Plus, X } from 'lucide-react';
 
 interface BackendUploadResponse {
   success: boolean;
@@ -33,6 +33,42 @@ function LabelUploader() {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [processingStatus, setProcessingStatus] = useState<string>('');
   const [isDragOver, setIsDragOver] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState('standard_20');
+  const [barcodeColumn, setBarcodeColumn] = useState(1);
+  const [textColumns, setTextColumns] = useState<{ column: number; label: string }[]>([
+    { column: 1, label: 'Location' },
+    { column: 4, label: 'Unit' },
+  ]);
+  const [hasHeaderRow, setHasHeaderRow] = useState(false);
+
+  const templates = [
+    { id: 'standard_20', name: 'Standard', desc: '20 labels per sheet', size: '1.75" x 1.8"', grid: '5 x 4', rows: 5, cols: 4, maxTextLines: 2 },
+    { id: '5163', name: '5163', desc: 'Compatible with Avery 5163', size: '2" x 4"', grid: '5 x 2', rows: 5, cols: 2, maxTextLines: 2 },
+    { id: '5160', name: '5160', desc: 'Compatible with Avery 5160', size: '1" x 2 5/8"', grid: '10 x 3', rows: 10, cols: 3, maxTextLines: 1 },
+    { id: '94233', name: '94233', desc: 'Compatible with Avery 94233', size: '2.5" x 2.5"', grid: '4 x 3', rows: 4, cols: 3, maxTextLines: 2 },
+  ];
+
+  const currentTemplate = templates.find(t => t.id === selectedTemplate)!;
+
+  const handleTemplateChange = (templateId: string) => {
+    setSelectedTemplate(templateId);
+    const template = templates.find(t => t.id === templateId)!;
+    // Trim text columns to fit template's max
+    setTextColumns(prev => prev.slice(0, template.maxTextLines));
+  };
+
+  const addTextColumn = () => {
+    if (textColumns.length >= currentTemplate.maxTextLines) return;
+    setTextColumns(prev => [...prev, { column: 1, label: '' }]);
+  };
+
+  const removeTextColumn = (index: number) => {
+    setTextColumns(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const updateTextColumn = (index: number, field: 'column' | 'label', value: number | string) => {
+    setTextColumns(prev => prev.map((tc, i) => i === index ? { ...tc, [field]: value } : tc));
+  };
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -193,6 +229,12 @@ function LabelUploader() {
 
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('template_id', selectedTemplate);
+    formData.append('column_mapping', JSON.stringify({
+      barcode_column: barcodeColumn,
+      text_columns: textColumns,
+      has_header_row: hasHeaderRow,
+    }));
 
     setLoading(true);
     setError('');
@@ -356,6 +398,143 @@ function LabelUploader() {
               <p className="text-sm text-success-foreground">{success}</p>
             </div>
           )}
+        </div>
+
+        {/* Template Selector */}
+        <div className="px-6 py-5 border-t border-border">
+          <h3 className="font-heading text-sm font-semibold text-foreground mb-1">Select Label Template</h3>
+          <p className="text-xs text-muted-foreground mb-4">Choose a template that matches your label sheets</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {templates.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => handleTemplateChange(t.id)}
+                className={`relative flex flex-col items-start p-3 rounded-[16px] border-2 transition-all cursor-pointer bg-card text-left ${
+                  selectedTemplate === t.id
+                    ? 'border-primary shadow-sm'
+                    : 'border-border hover:border-muted-foreground/30'
+                }`}
+              >
+                {selectedTemplate === t.id && (
+                  <span className="absolute top-2 right-2 bg-primary text-primary-foreground font-heading text-[9px] font-semibold px-2 py-0.5 rounded-full tracking-wide">
+                    DEFAULT
+                  </span>
+                )}
+                <span className="font-heading text-xs font-semibold text-foreground">{t.name}</span>
+                <span className="text-[11px] text-muted-foreground mt-0.5">{t.desc}</span>
+
+                {/* Grid Preview */}
+                <div className="w-full mt-2 bg-secondary/50 rounded-[12px] p-2 aspect-[4/3]">
+                  <div className="w-full h-full grid gap-[3px]" style={{ gridTemplateRows: `repeat(${Math.min(t.rows, 6)}, 1fr)`, gridTemplateColumns: `repeat(${t.cols}, 1fr)` }}>
+                    {Array.from({ length: Math.min(t.rows, 6) * t.cols }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`rounded-[2px] ${
+                          selectedTemplate === t.id
+                            ? 'bg-primary/15 border border-primary/30'
+                            : 'bg-secondary border border-border'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex justify-between w-full mt-2">
+                  <span className="text-[10px] text-muted-foreground">{t.size}</span>
+                  <span className={`font-heading text-[10px] font-medium ${selectedTemplate === t.id ? 'text-primary' : 'text-muted-foreground'}`}>{t.grid}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Column Mapping */}
+        <div className="px-6 py-5 border-t border-border">
+          <h3 className="font-heading text-sm font-semibold text-foreground mb-1">Column Mapping</h3>
+          <p className="text-xs text-muted-foreground mb-4">Tell us which columns in your file contain the barcode value and text to display</p>
+
+          {/* Barcode Column */}
+          <div className="mb-4">
+            <label className="block text-xs font-medium text-foreground mb-1.5">Barcode Column <span className="text-destructive">*</span></label>
+            <input
+              type="number"
+              min={1}
+              max={26}
+              value={barcodeColumn}
+              onChange={(e) => setBarcodeColumn(Math.max(1, Math.min(26, parseInt(e.target.value) || 1)))}
+              className="h-9 w-20 px-3 rounded-[10px] border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+            />
+            <span className="text-xs text-muted-foreground ml-2">Which column has the barcode value?</span>
+          </div>
+
+          {/* Text Columns */}
+          <div className="mb-3">
+            <label className="block text-xs font-medium text-foreground mb-1.5">
+              Text Fields {currentTemplate.maxTextLines > 0 && <span className="text-muted-foreground font-normal">(max {currentTemplate.maxTextLines})</span>}
+            </label>
+            <div className="flex flex-col gap-2">
+              {textColumns.map((tc, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-muted-foreground w-8">Col</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={26}
+                      value={tc.column}
+                      onChange={(e) => updateTextColumn(index, 'column', Math.max(1, Math.min(26, parseInt(e.target.value) || 1)))}
+                      className="h-9 w-20 px-3 rounded-[10px] border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-1">
+                    <span className="text-xs text-muted-foreground w-10">Label</span>
+                    <input
+                      type="text"
+                      value={tc.label}
+                      onChange={(e) => updateTextColumn(index, 'label', e.target.value)}
+                      placeholder="e.g. Location, Size, SKU..."
+                      maxLength={50}
+                      className="h-9 flex-1 px-3 rounded-[10px] border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-muted-foreground/50"
+                    />
+                  </div>
+                  <button
+                    onClick={() => removeTextColumn(index)}
+                    className="p-2 rounded-[10px] text-muted-foreground hover:text-destructive hover:bg-error/50 transition-colors cursor-pointer bg-transparent border-none"
+                    title="Remove field"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            {textColumns.length < currentTemplate.maxTextLines && (
+              <button
+                onClick={addTextColumn}
+                className="mt-2 flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer bg-transparent border-none"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Add text field
+              </button>
+            )}
+          </div>
+
+          {/* Header Row Toggle */}
+          <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border/50">
+            <button
+              onClick={() => setHasHeaderRow(!hasHeaderRow)}
+              className={`w-4 h-4 rounded border-2 flex items-center justify-center cursor-pointer ${
+                hasHeaderRow ? 'border-primary bg-primary' : 'border-muted-foreground/40 bg-card'
+              }`}
+            >
+              {hasHeaderRow && (
+                <svg className="w-3 h-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </button>
+            <span className="text-xs text-foreground">First row is headers</span>
+            <span className="text-xs text-muted-foreground">(skip first row when processing)</span>
+          </div>
         </div>
 
         {/* Upload Action */}
