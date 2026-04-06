@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../config/config';
-import { ScanBarcode } from 'lucide-react';
+import { ScanBarcode, ArrowLeft } from 'lucide-react';
 
 function SignUp() {
   const [email, setEmail] = useState('');
@@ -86,6 +86,10 @@ function SignUp() {
         <p className="text-base text-muted-foreground leading-relaxed">
           No credit card required. Free to get started.
         </p>
+        <a href="/" className="flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors self-start">
+            <ArrowLeft className="w-4 h-4" />
+            Back to home
+          </a>
       </div>
 
       {/* Right Form Panel */}

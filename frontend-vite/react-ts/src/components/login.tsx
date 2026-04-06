@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ScanBarcode } from 'lucide-react';
+import { ScanBarcode, ArrowLeft } from 'lucide-react';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -66,6 +66,10 @@ function Login() {
         <p className="text-base text-muted-foreground leading-relaxed">
           Professional label generation for businesses of any size.
         </p>
+        <a href="/" className="flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors self-start">
+            <ArrowLeft className="w-4 h-4" />
+            Back to home
+          </a>
       </div>
 
       {/* Right Form Panel */}
