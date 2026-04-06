@@ -1,8 +1,3 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import {
   ScanBarcode,
   FileSpreadsheet,
@@ -12,98 +7,16 @@ import {
   Cpu,
 } from 'lucide-react';
 import BarcodeWidget from '../components/BarcodeWidget';
+import Navbar from '../components/Navbar';
 
 function LandingPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await axios.get(`${API_URL}/auth/status`, { withCredentials: true });
-        setIsAuthenticated(res.data.authenticated);
-      } catch {
-        setIsAuthenticated(false);
-      }
-    };
-    checkAuth();
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
-      setIsAuthenticated(false);
-      navigate('/');
-    } catch (e) {
-      console.error('Logout error:', e);
-    }
-  };
-
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Navigation */}
-      <nav className="flex items-center justify-between border-b border-border px-6 md:px-20 h-[72px]">
-        <a href="/" className="flex items-center gap-2">
-          <ScanBarcode className="w-7 h-7 text-primary" />
-          <span className="font-heading text-xl font-bold text-foreground">LabelGenius</span>
-        </a>
-
-        {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8">
-          <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Features</a>
-          <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">How It Works</a>
-          <a href="/help" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Help</a>
-          {isAuthenticated ? (
-            <>
-              <a href="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Dashboard</a>
-              <button onClick={handleLogout} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors bg-transparent border-none cursor-pointer">Logout</button>
-            </>
-          ) : (
-            <>
-              <a href="/login" className="text-sm font-medium text-foreground hover:text-foreground/80 transition-colors">Log in</a>
-              <a href="/signup" className="inline-flex items-center justify-center h-10 px-4 bg-primary text-primary-foreground font-heading text-sm font-medium rounded-full hover:bg-primary/90 transition-colors">
-                Get Started
-              </a>
-            </>
-          )}
-        </div>
-
-        {/* Mobile Menu */}
-        <div className="md:hidden">
-          <Menu>
-            {({ open }) => (
-              <>
-                <MenuButton className="p-2 rounded-lg text-foreground hover:bg-secondary transition-colors">
-                  {open ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
-                </MenuButton>
-                <MenuItems className="absolute right-4 z-50 mt-2 w-64 rounded-[16px] bg-card shadow-lg ring-1 ring-border focus:outline-none">
-                  <div className="p-3 space-y-1">
-                    <MenuItem><a href="#features" className="block px-3 py-2 text-sm text-foreground rounded-lg hover:bg-secondary">Features</a></MenuItem>
-                    <MenuItem><a href="#how-it-works" className="block px-3 py-2 text-sm text-foreground rounded-lg hover:bg-secondary">How It Works</a></MenuItem>
-                    <MenuItem><a href="/help" className="block px-3 py-2 text-sm text-foreground rounded-lg hover:bg-secondary">Help</a></MenuItem>
-                    {isAuthenticated ? (
-                      <>
-                        <MenuItem><a href="/dashboard" className="block px-3 py-2 text-sm text-foreground rounded-lg hover:bg-secondary">Dashboard</a></MenuItem>
-                        <MenuItem><button onClick={handleLogout} className="block w-full text-left px-3 py-2 text-sm text-destructive rounded-lg hover:bg-error">Logout</button></MenuItem>
-                      </>
-                    ) : (
-                      <>
-                        <MenuItem><a href="/login" className="block px-3 py-2 text-sm text-foreground rounded-lg hover:bg-secondary">Log in</a></MenuItem>
-                        <MenuItem><a href="/signup" className="block px-3 py-2 text-sm font-medium text-center bg-primary text-primary-foreground rounded-full hover:bg-primary/90">Get Started</a></MenuItem>
-                      </>
-                    )}
-                  </div>
-                </MenuItems>
-              </>
-            )}
-          </Menu>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Hero Section */}
       <section className="px-6 md:px-20 py-10 md:py-20">
-        <div className="flex flex-col-reverse md:flex-row items-center gap-10 md:gap-16">
+        <div className="max-w-7xl mx-auto flex flex-col-reverse md:flex-row items-center gap-10 md:gap-16">
           <div className="flex-1 flex flex-col gap-6">
             <span className="inline-flex items-center gap-2 bg-secondary text-primary font-body text-[13px] font-semibold rounded-full px-4 py-1.5 w-fit">
               <Zap className="w-3.5 h-3.5" />
@@ -242,7 +155,7 @@ function LandingPage() {
 
       {/* Try It Now Section */}
       <section id="try-it" className="px-6 md:px-20 py-12 md:py-16">
-        <div className="flex flex-col items-center gap-8">
+        <div className="max-w-7xl mx-auto flex flex-col items-center gap-8">
           <div className="text-center max-w-xl">
             <span className="inline-flex items-center gap-2 bg-secondary text-primary font-body text-[13px] font-semibold rounded-full px-4 py-1.5 mb-3">
               <ScanBarcode className="w-3.5 h-3.5" />
@@ -261,7 +174,7 @@ function LandingPage() {
 
       {/* Features Section */}
       <section id="features" className="px-6 md:px-20 py-16 md:py-20">
-        <div className="flex flex-col items-center gap-12">
+        <div className="max-w-7xl mx-auto flex flex-col items-center gap-12">
           <div className="text-center max-w-xl">
             <p className="font-heading text-sm font-semibold text-primary mb-3">Features</p>
             <h2 className="font-heading text-2xl md:text-[32px] font-bold text-foreground leading-tight">
@@ -292,7 +205,7 @@ function LandingPage() {
 
       {/* How It Works */}
       <section id="how-it-works" className="px-6 md:px-20 py-16 md:py-20 bg-secondary">
-        <div className="flex flex-col items-center gap-12">
+        <div className="max-w-7xl mx-auto flex flex-col items-center gap-12">
           <div className="text-center max-w-xl">
             <p className="font-heading text-sm font-semibold text-primary mb-3">How It Works</p>
             <h2 className="font-heading text-2xl md:text-[32px] font-bold text-foreground leading-tight">
@@ -321,7 +234,7 @@ function LandingPage() {
 
       {/* CTA Section */}
       <section className="px-6 md:px-20 py-16 md:py-20 bg-foreground">
-        <div className="flex flex-col items-center gap-6 text-center">
+        <div className="max-w-7xl mx-auto flex flex-col items-center gap-6 text-center">
           <h2 className="font-heading text-3xl md:text-4xl font-bold text-background leading-tight">
             Ready to streamline your labeling?
           </h2>
@@ -331,9 +244,6 @@ function LandingPage() {
           <div className="flex flex-wrap items-center justify-center gap-3">
             <a href="/signup" className="inline-flex items-center justify-center h-12 px-6 bg-primary text-primary-foreground font-heading text-sm font-medium rounded-full hover:bg-primary/90 transition-colors">
               Get Started Free
-            </a>
-            <a href="/help" className="inline-flex items-center justify-center h-12 px-6 bg-card text-foreground font-heading text-sm font-medium rounded-full border border-border shadow-sm hover:bg-secondary transition-colors">
-              Contact Sales
             </a>
           </div>
         </div>
