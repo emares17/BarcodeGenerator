@@ -15,6 +15,7 @@ class BarcodeGenerator:
         self.font = self.template['font']
         self.font_size = self.template['font_size']
         self.label_width = self.template['label_width_inches'] * inch
+        self.label_height = self.template['label_height_inches'] * inch
         self.padding_x = self.template.get('padding_x_inches', 0.1) * inch
         self.max_text_lines = self.template.get('max_text_lines', 2)
         self.bar_width = None
@@ -30,7 +31,8 @@ class BarcodeGenerator:
     def draw_label_to_canvas(self, canvas, x, y, barcode_value, text_lines):
         if self.barcode_type == 'qr':
             usable_width = self.label_width - (2 * self.padding_x)
-            qr_size = min(self.barcode_height_inches, usable_width)
+            available_height = self.label_height - self.barcode_offset_y - (0.05 * inch)
+            qr_size = min(available_height, usable_width)
 
             qr = QrCodeWidget(barcode_value)
             bounds = qr.getBounds()
