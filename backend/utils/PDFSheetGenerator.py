@@ -20,7 +20,7 @@ class PDFSheetGenerator:
         self.rows = self.template['rows']
         self.columns = self.template['columns']
         
-    def generate_pdf_sheets(self, labels):
+    def generate_pdf_sheets(self, labels, barcode_type='code128'):
         # labels: list of (barcode_value, [(label, value), ...]) tuples
 
         # Calculate sheets needed
@@ -28,7 +28,7 @@ class PDFSheetGenerator:
         num_sheets = (len(labels) + labels_per_sheet - 1) // labels_per_sheet
 
         sheet_files = []
-        barcode_gen = BarcodeGenerator(self.template)
+        barcode_gen = BarcodeGenerator(self.template, barcode_type=barcode_type)
 
         # Calibrate uniform barWidth based on longest barcode value
         all_parts = [bv for bv, _ in labels]
