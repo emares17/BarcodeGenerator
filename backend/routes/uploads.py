@@ -70,7 +70,7 @@ def upload_file():
         # Extract and validate barcode type
         barcode_type = request.form.get('barcode_type', 'code128')
         if barcode_type not in ('code128', 'qr'):
-            barcode_type = 'code128'
+            return jsonify({'error': f"Invalid barcode_type '{barcode_type}'. Valid types: code128, qr"}), 400
 
         # Process labels
         result = process_label_file(file, user_id, secure_filename_result, template_id=template_id, column_mapping=column_mapping, barcode_type=barcode_type)
