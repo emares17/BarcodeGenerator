@@ -27,7 +27,7 @@ function LandingPage() {
             </h1>
             <p className="text-lg text-muted-foreground leading-relaxed max-w-xl">
               Upload your CSV or Excel file, and LabelGenius instantly creates print-ready
-              Code 128 barcode labels arranged on professional 4&times;5 sheets.
+              Code 128 or QR code labels using your chosen professional label template.
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <a href="/signup" className="inline-flex items-center justify-center h-12 px-6 bg-primary text-primary-foreground font-heading text-sm font-medium rounded-full hover:bg-primary/90 transition-colors">
@@ -189,7 +189,7 @@ function LandingPage() {
             {[
               { icon: FileSpreadsheet, title: 'Multiple Formats', desc: 'Upload CSV or Excel files. We automatically detect your data columns and generate labels.' },
               { icon: Zap, title: 'Instant Processing', desc: 'Multi-threaded barcode generation processes hundreds of labels in seconds.' },
-              { icon: Download, title: 'Print-Ready Output', desc: 'Download perfectly arranged 4×5 label sheets at 600 DPI, ready for professional printing.' },
+              { icon: Download, title: 'Print-Ready Output', desc: 'Download perfectly arranged label sheets as high-quality PDFs, ready for professional printing.' },
             ].map((feat) => (
               <div key={feat.title} className="bg-card border border-border rounded-[16px] p-6 shadow-sm">
                 <div className="w-12 h-12 bg-secondary rounded-[16px] flex items-center justify-center mb-4">
@@ -216,7 +216,7 @@ function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl">
             {[
               { num: '1', icon: Upload, title: 'Upload Your File', desc: 'Drag and drop your CSV or Excel file containing product data.' },
-              { num: '2', icon: Cpu, title: 'We Process It', desc: 'Our engine generates Code 128 barcodes and arranges them on 4×5 label sheets.' },
+              { num: '2', icon: Cpu, title: 'We Process It', desc: 'Our engine generates Code 128 or QR code barcodes and arranges them on your chosen label template.' },
               { num: '3', icon: Download, title: 'Download Labels', desc: "Download your print-ready label sheets as a ZIP file. It's that easy." },
             ].map((step) => (
               <div key={step.num} className="flex flex-col items-center text-center gap-4">

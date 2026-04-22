@@ -113,7 +113,7 @@ function Help() {
               <div className="space-y-4 mb-5">
                 <div className="border border-border rounded-[12px] p-4">
                   <h3 className="text-sm font-semibold text-foreground mb-2">Barcode Column (required)</h3>
-                  <p className="text-xs text-muted-foreground">Select the column number that contains the value to encode as a Code 128 barcode. This is typically a part number, SKU, or product ID.</p>
+                  <p className="text-xs text-muted-foreground">Select the column number that contains the value to encode as a barcode or QR code. This is typically a part number, SKU, or product ID.</p>
                 </div>
                 <div className="border border-border rounded-[12px] p-4">
                   <h3 className="text-sm font-semibold text-foreground mb-2">Text Fields (optional)</h3>
@@ -213,7 +213,7 @@ function Help() {
                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" /> Label size: {tmpl.size}</li>
                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" /> {tmpl.layout}</li>
                     <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" /> Up to {tmpl.textLines} text {tmpl.textLines === 1 ? 'field' : 'fields'} per label</li>
-                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" /> Code 128 barcode</li>
+                    <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" /> Code 128 or QR code barcode</li>
                   </ul>
                 </div>
               ))}
@@ -231,7 +231,7 @@ function Help() {
               </div>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" /> Format: PDF</li>
-                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" /> Barcode: Code 128</li>
+                <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" /> Barcode: Code 128 or QR Code</li>
                 <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" /> Paper: 8.5" x 11" (US Letter)</li>
                 <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" /> Delivered as ZIP download</li>
               </ul>

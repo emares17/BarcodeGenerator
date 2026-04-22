@@ -28,7 +28,7 @@
 
   <!-- Logo + Text -->
   <text x="380" y="250" font-family="'JetBrains Mono', monospace" font-size="52" font-weight="800" fill="#111111">LabelGenius</text>
-  <text x="380" y="310" font-family="'Inter', 'Segoe UI', sans-serif" font-size="26" fill="#6B7280">Free Barcode Generator &amp; Label Maker</text>
+  <text x="380" y="310" font-family="'Inter', 'Segoe UI', sans-serif" font-size="26" fill="#6B7280">Free QR Code &amp; Barcode Generator</text>
 
   <!-- Feature pills -->
   <g transform="translate(380, 350)">

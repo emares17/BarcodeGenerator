@@ -8,7 +8,7 @@ interface DocumentMeta {
 
 const DEFAULT_TITLE = 'LabelGenius - Fast Barcode Label Generator | CSV to Barcode';
 const DEFAULT_DESCRIPTION =
-  'Generate barcode labels from Excel/CSV in seconds. Free barcode generator for inventory and warehouse labels.';
+  'Free QR code & barcode generator — upload a CSV or Excel file and instantly create bulk QR code or Code 128 labels. Download print-ready PDFs for inventory and warehouse use.';
 
 function setMetaTag(name: string, content: string, attribute = 'name') {
   let el = document.querySelector(`meta[${attribute}="${name}"]`) as HTMLMetaElement | null;
