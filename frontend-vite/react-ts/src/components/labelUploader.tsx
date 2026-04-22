@@ -40,6 +40,7 @@ function LabelUploader() {
     { column: 4, label: 'Unit' },
   ]);
   const [hasHeaderRow, setHasHeaderRow] = useState(false);
+  const [barcodeType, setBarcodeType] = useState<'code128' | 'qr'>('code128');
 
   const templates = [
     { id: 'standard_20', name: 'Standard', desc: '20 labels per sheet', size: '1.75" x 1.8"', grid: '5 x 4', rows: 5, cols: 4, maxTextLines: 2 },
@@ -235,6 +236,7 @@ function LabelUploader() {
       text_columns: textColumns,
       has_header_row: hasHeaderRow,
     }));
+    formData.append('barcode_type', barcodeType);
 
     setLoading(true);
     setError('');
@@ -443,6 +445,31 @@ function LabelUploader() {
                   <span className="text-[10px] text-muted-foreground">{t.size}</span>
                   <span className={`font-heading text-[10px] font-medium ${selectedTemplate === t.id ? 'text-primary' : 'text-muted-foreground'}`}>{t.grid}</span>
                 </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Barcode Type */}
+        <div className="px-6 py-5 border-t border-border">
+          <h3 className="font-heading text-sm font-semibold text-foreground mb-1">Barcode Type</h3>
+          <p className="text-xs text-muted-foreground mb-4">Choose the barcode format to generate</p>
+          <div className="flex gap-3">
+            {([
+              { id: 'code128', label: 'Code 128', desc: 'Standard linear barcode' },
+              { id: 'qr', label: 'QR Code', desc: '2D matrix barcode' },
+            ] as const).map((bt) => (
+              <button
+                key={bt.id}
+                onClick={() => setBarcodeType(bt.id)}
+                className={`flex flex-col items-start p-3 rounded-[16px] border-2 transition-all cursor-pointer bg-card text-left flex-1 ${
+                  barcodeType === bt.id
+                    ? 'border-primary shadow-sm'
+                    : 'border-border hover:border-muted-foreground/30'
+                }`}
+              >
+                <span className="font-heading text-xs font-semibold text-foreground">{bt.label}</span>
+                <span className="text-[11px] text-muted-foreground mt-0.5">{bt.desc}</span>
               </button>
             ))}
           </div>

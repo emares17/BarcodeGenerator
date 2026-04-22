@@ -10,7 +10,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def process_label_file(file, user_id, secure_filename, template_id=None, column_mapping=None):
+def process_label_file(file, user_id, secure_filename, template_id=None, column_mapping=None, barcode_type='code128'):
 
     logger.info("Starting process_label_file for user %s", user_id)
 
@@ -80,7 +80,7 @@ def process_label_file(file, user_id, secure_filename, template_id=None, column_
         if template_id:
             template = current_app.config['LABEL_TEMPLATES'][template_id]
         sheet_gen = PDFSheetGenerator(current_app.config['SHEET_FOLDER'], template)
-        sheets = sheet_gen.generate_pdf_sheets(labels)
+        sheets = sheet_gen.generate_pdf_sheets(labels, barcode_type=barcode_type)
 
         pdf_time = time.time() - start_time
         logger.info("PDF generation: %.2fs", pdf_time)
