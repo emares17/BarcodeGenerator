@@ -6,6 +6,9 @@ supabase==1.0.4
 Pillow==9.5.0
 python-barcode==0.15.1
 werkzeug==2.3.7
-tuspy  
-gunicorn 
+tuspy
+gunicorn
 reportlab
+pytest>=8.0
+pytest-cov>=5.0
+pytest-mock>=3.0
