@@ -1,9 +1,6 @@
 import { test, expect } from '@playwright/test';
-import path from 'path';
 import { setupApiMocks, } from './fixtures/api-mocks';
 import { VALID_CSV } from './fixtures/test-data';
-
-const CSV_PATH = path.join(__dirname, 'fixtures', 'sample.csv');
 
 test.beforeEach(async ({ page }) => {
   await setupApiMocks(page);
