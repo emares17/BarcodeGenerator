@@ -1,3 +1,4 @@
+import base64
 import pandas as pd
 import uuid
 import time
@@ -152,4 +153,82 @@ def process_label_file(file, user_id, secure_filename, template_id=None, column_
         logger.error("Processing failed, cleaning up temp files.")
         if os.path.exists(filepath):
             os.remove(filepath)
-        raise 
+        raise
+
+
+def generate_label_preview(file, user_id, secure_filename, template_id=None, column_mapping=None, barcode_type='code128'):
+    logger.info("Starting generate_label_preview for user %s", user_id)
+
+    if not column_mapping:
+        column_mapping = {
+            'barcode_column': 1,
+            'text_columns': [
+                {'column': 0, 'label': 'Location'},
+                {'column': 3, 'label': 'Unit'}
+            ],
+            'has_header_row': False
+        }
+
+    ext = os.path.splitext(secure_filename)[1]
+    saved_name = f"{uuid.uuid4().hex}{ext}"
+    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], saved_name)
+    file.save(filepath)
+
+    try:
+        header_arg = 0 if column_mapping.get('has_header_row') else None
+        if secure_filename.endswith(('.xlsx', '.xls')):
+            df = pd.read_excel(filepath, header=header_arg)
+        else:
+            df = pd.read_csv(filepath, header=header_arg)
+
+        barcode_col = column_mapping['barcode_column']
+        text_cols = column_mapping.get('text_columns', [])
+
+        labels = []
+        for _, row in df.iterrows():
+            if barcode_col >= len(row):
+                continue
+            barcode_value = str(row.iloc[barcode_col]).strip()[:100]
+            if not barcode_value or barcode_value == 'nan':
+                continue
+            text_lines = []
+            for tc in text_cols:
+                col_idx = tc['column']
+                if col_idx < len(row):
+                    val = str(row.iloc[col_idx]).strip()[:100]
+                    if val and val != 'nan':
+                        text_lines.append((tc['label'], val))
+            labels.append((barcode_value, text_lines))
+
+        if not labels:
+            raise ValueError('No valid data found in file')
+
+        label_count = len(labels)
+        if label_count > current_app.config['MAX_LABELS']:
+            raise ValueError(f'Too many labels. Maximum: {current_app.config["MAX_LABELS"]}')
+
+        template = None
+        if template_id:
+            template = current_app.config['LABEL_TEMPLATES'][template_id]
+        sheet_gen = PDFSheetGenerator(current_app.config['SHEET_FOLDER'], template)
+        pdf_bytes = sheet_gen.generate_preview_sheet(labels, barcode_type=barcode_type)
+
+        os.remove(filepath)
+
+        labels_per_sheet = sheet_gen.rows * sheet_gen.columns
+        total_sheets = (label_count + labels_per_sheet - 1) // labels_per_sheet
+
+        logger.info("Preview generated for user %s: %d labels, %d sheets", user_id, label_count, total_sheets)
+
+        return {
+            'preview_pdf': base64.b64encode(pdf_bytes).decode('utf-8'),
+            'label_count': label_count,
+            'total_sheets': total_sheets,
+            'labels_on_first_sheet': min(label_count, labels_per_sheet),
+        }
+
+    except Exception as e:
+        logger.error("Preview generation failed, cleaning up temp files.")
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        raise
