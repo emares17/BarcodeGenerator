@@ -3,19 +3,17 @@ import os
 import pytest
 from collections import defaultdict
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 
 @pytest.fixture
 def app():
-    with patch('models.database.create_client') as mock_create:
-        mock_create.return_value = MagicMock()
-        from app import create_app
-        flask_app = create_app('testing')
-        os.makedirs(flask_app.config['UPLOAD_FOLDER'], exist_ok=True)
-        os.makedirs(flask_app.config['SHEET_FOLDER'], exist_ok=True)
-        os.makedirs(flask_app.config['SESSION_FILE_DIR'], exist_ok=True)
-        yield flask_app
+    from app import create_app
+    flask_app = create_app('testing')
+    os.makedirs(flask_app.config['UPLOAD_FOLDER'], exist_ok=True)
+    os.makedirs(flask_app.config['SHEET_FOLDER'], exist_ok=True)
+    os.makedirs(flask_app.config['SESSION_FILE_DIR'], exist_ok=True)
+    yield flask_app
 
 
 @pytest.fixture
