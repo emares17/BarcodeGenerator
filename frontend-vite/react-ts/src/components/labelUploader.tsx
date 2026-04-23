@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { ChangeEvent } from 'react';
 import axios from 'axios';
 import { Upload, Download, Trash2, RefreshCw, FileSpreadsheet, AlertCircle, CheckCircle2, Plus, X } from 'lucide-react';
+import LabelPreview from './LabelPreview';
 
 interface BackendUploadResponse {
   success: boolean;
@@ -20,6 +21,13 @@ interface UserSheet {
   sheet_count: number;
   total_size_bytes: number;
   created_at: string;
+}
+
+interface PreviewData {
+  preview_pdf: string;
+  label_count: number;
+  total_sheets: number;
+  labels_on_first_sheet: number;
 }
 
 function LabelUploader() {
@@ -41,6 +49,8 @@ function LabelUploader() {
   ]);
   const [hasHeaderRow, setHasHeaderRow] = useState(false);
   const [barcodeType, setBarcodeType] = useState<'code128' | 'qr'>('code128');
+  const [previewing, setPreviewing] = useState(false);
+  const [previewData, setPreviewData] = useState<PreviewData | null>(null);
 
   const templates = [
     { id: 'standard_20', name: 'Standard', desc: '20 labels per sheet', size: '1.75" x 1.8"', grid: '5 x 4', rows: 5, cols: 4, maxTextLines: 2 },
@@ -270,6 +280,7 @@ function LabelUploader() {
       console.log(`Total processing time: ${totalTime.toFixed(2)} seconds`);
 
       setFile(null);
+      setPreviewData(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
 
       setTimeout(() => {
@@ -304,6 +315,61 @@ function LabelUploader() {
     }
   };
 
+  const handlePreview = async () => {
+    if (!file) {
+      setError('Please select a file first.');
+      return;
+    }
+
+    const maxSize = 50 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setError('File too large. Maximum size is 50MB.');
+      return;
+    }
+
+    const allowedTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Invalid file type. Please upload a CSV or Excel file.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('template_id', selectedTemplate);
+    formData.append('column_mapping', JSON.stringify({
+      barcode_column: barcodeColumn,
+      text_columns: textColumns,
+      has_header_row: hasHeaderRow,
+    }));
+    formData.append('barcode_type', barcodeType);
+
+    setPreviewing(true);
+    setPreviewData(null);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await axios.post<PreviewData>(
+        `${API_URL}/preview`,
+        formData,
+        { withCredentials: true }
+      );
+      setPreviewData(response.data);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 429) {
+          setError('Preview limit reached. Please wait before trying again.');
+        } else {
+          setError(err.response?.data?.error || 'Failed to generate preview.');
+        }
+      } else {
+        setError('An error occurred generating the preview.');
+      }
+    } finally {
+      setPreviewing(false);
+    }
+  };
+
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -315,7 +381,8 @@ function LabelUploader() {
   };
 
   return (
-    <div className="p-6 md:p-10 max-w-5xl">
+    <div className={`p-6 md:p-10 ${previewData ? 'flex gap-6 max-w-none' : 'max-w-5xl'}`}>
+      <div className={previewData ? 'w-[580px] flex-shrink-0' : ''}>
       {/* Page Header */}
       <div className="mb-8">
         <h1 className="font-heading text-2xl font-bold text-foreground">Generate Labels</h1>
@@ -565,10 +632,17 @@ function LabelUploader() {
         </div>
 
         {/* Upload Action */}
-        <div className="px-6 py-4 border-t border-border">
+        <div className="px-6 py-4 border-t border-border flex items-center gap-3">
+          <button
+            onClick={handlePreview}
+            disabled={previewing || loading || !file}
+            className="h-11 px-6 bg-card text-foreground font-heading text-sm font-medium rounded-full border border-border shadow-sm hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            {previewing ? 'Generating Preview...' : 'Preview First Sheet'}
+          </button>
           <button
             onClick={handleUpload}
-            disabled={loading || !file}
+            disabled={loading || previewing || !file}
             className="h-11 px-6 bg-primary text-primary-foreground font-heading text-sm font-medium rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? 'Generating...' : 'Generate Label Sheets'}
@@ -678,6 +752,21 @@ function LabelUploader() {
           </div>
         )}
       </div>
+      </div>
+
+      {/* Preview Panel */}
+      {previewData && (
+        <div className="flex-1 min-w-0 sticky top-6" style={{ height: 'calc(100vh - 6rem)' }}>
+          <LabelPreview
+            pdfBase64={previewData.preview_pdf}
+            labelCount={previewData.label_count}
+            totalSheets={previewData.total_sheets}
+            labelsOnFirstSheet={previewData.labels_on_first_sheet}
+            onGenerateAll={handleUpload}
+            onClose={() => setPreviewData(null)}
+          />
+        </div>
+      )}
     </div>
   );
 }

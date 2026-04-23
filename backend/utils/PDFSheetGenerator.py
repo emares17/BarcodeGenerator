@@ -1,3 +1,4 @@
+import io
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.units import inch
@@ -73,6 +74,27 @@ class PDFSheetGenerator:
                 x = self.margin_left + col * (self.label_width + self.x_gap)
                 y = LETTER[1] - self.margin_top - (row + 1) * self.label_height - row * self.y_gap
                 c.rect(x, y, self.label_width, self.label_height)
+
+    def generate_preview_sheet(self, labels, barcode_type='code128'):
+        labels_per_sheet = self.rows * self.columns
+        preview_labels = labels[:labels_per_sheet]
+
+        barcode_gen = BarcodeGenerator(self.template, barcode_type=barcode_type)
+        barcode_gen.calibrate([bv for bv, _ in labels])
+
+        buf = io.BytesIO()
+        c = canvas.Canvas(buf, pagesize=LETTER)
+
+        for i, (barcode_value, text_lines) in enumerate(preview_labels):
+            row = i // self.columns
+            col = i % self.columns
+            x = self.margin_left + col * (self.label_width + self.x_gap)
+            y = LETTER[1] - self.margin_top - (row + 1) * self.label_height - row * self.y_gap
+            barcode_gen.draw_label_to_canvas(c, x, y, barcode_value, text_lines)
+
+        c.save()
+        buf.seek(0)
+        return buf.read()
 
     def _get_default_template(self):
         from config.settings import Config
