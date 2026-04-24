@@ -1,0 +1,24 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 60%
+    patch:
+      default:
+        target: 50%
+
+flags:
+  backend:
+    paths:
+      - backend/
+
+comment:
+  layout: "reach, diff, flags"
+
+ignore:
+  - "backend/tests/"
+  - "frontend-vite/"
+  - "venv/"
+  - "backend/flask_session/"
+  - "backend/uploads/"
+  - "backend/sheets/"

@@ -149,7 +149,7 @@ class ProductionConfig(Config):
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = 'None'
     SESSION_COOKIE_DOMAIN = None
-    
+
     # Production CORS; To be updated**
     CORS_CONFIG = {
         'origins': ['https://labelgenius.up.railway.app'],
@@ -158,7 +158,21 @@ class ProductionConfig(Config):
         'methods': ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
         'expose_headers': ['Set-Cookie']
     }
-    
+
     # Stricter production settings
     MAX_FILE_SIZE = 25 * 1024 * 1024  # 25MB in production
     MAX_LABELS = 5000  # Lower limit in production
+
+
+class TestingConfig(Config):
+    TESTING = True
+    WTF_CSRF_ENABLED = False
+    SECRET_KEY = 'test-secret'
+    SESSION_TYPE = 'filesystem'
+    SESSION_FILE_DIR = '/tmp/test_flask_sessions'
+    UPLOAD_FOLDER = '/tmp/test_uploads'
+    SHEET_FOLDER = '/tmp/test_sheets'
+    SUPABASE_URL = 'https://placeholder.supabase.co'
+    SUPABASE_ANON_KEY = 'test-anon-key'
+    SUPABASE_SERVICE_KEY = 'test-service-key'
+    RATELIMIT_STORAGE_URL = 'memory://'

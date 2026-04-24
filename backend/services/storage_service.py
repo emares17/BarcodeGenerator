@@ -12,7 +12,7 @@ load_dotenv()
 
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_service_key = os.getenv("SUPABASE_SERVICE_KEY")
-supabase_admin: Client = create_client(supabase_url, supabase_service_key)
+supabase_admin: Client = create_client(supabase_url, supabase_service_key) if supabase_url and supabase_service_key else None
 
 def create_tus_client():
     tus_endpoint = f"{os.getenv('SUPABASE_URL')}/storage/v1/upload/resumable"

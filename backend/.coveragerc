@@ -1,0 +1,21 @@
+[run]
+source = .
+omit =
+    tests/*
+    venv/*
+    flask_session/*
+    uploads/*
+    sheets/*
+    images/*
+    test_png_output/*
+    test_pdf_output/*
+    test_reportlab_comparison.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__
+    raise NotImplementedError
+
+[xml]
+output = coverage.xml

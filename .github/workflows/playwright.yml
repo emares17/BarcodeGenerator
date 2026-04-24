@@ -1,10 +1,8 @@
-name: Playwright Tests
+# Superseded by ci.yml frontend-e2e job. Kept for manual triggered runs only.
+name: Playwright Tests (Manual)
 
 on:
-    push:
-        branches: [main]
-    pull_request:
-        branches: [main]
+    workflow_dispatch:
 
 jobs:
     test:
