@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_session import Session
 from config.settings import Config, DevelopmentConfig, ProductionConfig, TestingConfig
-from routes import auth_bp, uploads_bp, sheets_bp, api_bp
+from routes import auth_bp, uploads_bp, sheets_bp, api_bp, labels_bp
 from models.database import init_database
 import os
 
@@ -68,6 +68,7 @@ def create_app(config_name='development'):
     app.register_blueprint(uploads_bp, url_prefix='/')
     app.register_blueprint(sheets_bp, url_prefix='/')
     app.register_blueprint(api_bp, url_prefix='/api')
+    app.register_blueprint(labels_bp, url_prefix='/labels')
     
     # Ensure folders exist
     folders = [
