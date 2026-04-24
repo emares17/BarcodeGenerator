@@ -4,11 +4,11 @@ import { VALID_CSV } from './fixtures/test-data';
 
 test.beforeEach(async ({ page }) => {
   await setupApiMocks(page);
-  await page.goto('/');
+  await page.goto('/upload');
 });
 
 test('all four templates are visible', async ({ page }) => {
-  await expect(page.getByRole('button', { name: /Standard/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Standard 20/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /5163/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /5160/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /94233/ })).toBeVisible();
@@ -29,7 +29,7 @@ test('5160 template limits text fields to 1', async ({ page }) => {
   await fileInput.setInputFiles({ name: 'test.csv', mimeType: 'text/csv', buffer: Buffer.from(VALID_CSV) });
 
   // Start with standard_20 (max 2 text fields) — add a second field
-  await page.getByRole('button', { name: /Standard/ }).click();
+  await page.getByRole('button', { name: /Standard 20/ }).click();
   const addBtn = page.getByRole('button', { name: /Add text field/ });
   if (await addBtn.isVisible()) {
     await addBtn.click();
@@ -45,5 +45,5 @@ test('switching templates does not clear the selected file', async ({ page }) =>
   const fileInput = page.locator('input[type="file"]');
   await fileInput.setInputFiles({ name: 'test.csv', mimeType: 'text/csv', buffer: Buffer.from(VALID_CSV) });
   await page.getByRole('button', { name: /5163/ }).click();
-  await expect(page.getByText('test.csv')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'test.csv' })).toBeVisible();
 });

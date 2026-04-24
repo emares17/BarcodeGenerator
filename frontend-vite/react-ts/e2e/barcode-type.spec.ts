@@ -4,7 +4,7 @@ import { VALID_CSV } from './fixtures/test-data';
 
 test.beforeEach(async ({ page }) => {
   await setupApiMocks(page);
-  await page.goto('/');
+  await page.goto('/upload');
 });
 
 test('Code 128 and QR Code options are both visible', async ({ page }) => {
@@ -31,8 +31,10 @@ test('barcode type is included in the upload request', async ({ page }) => {
   const fileInput = page.locator('input[type="file"]');
   await fileInput.setInputFiles({ name: 'test.csv', mimeType: 'text/csv', buffer: Buffer.from(VALID_CSV) });
   await page.getByRole('button', { name: /QR Code/ }).click();
-  await page.getByRole('button', { name: 'Generate Label Sheets' }).click();
-  await page.waitForResponse('**/upload');
+  await Promise.all([
+    page.waitForResponse('**/upload'),
+    page.getByRole('button', { name: 'Generate Label Sheets' }).click(),
+  ]);
 
   expect(capturedFormData).toContain('qr');
 });

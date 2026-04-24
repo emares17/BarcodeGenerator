@@ -9,7 +9,7 @@ async function uploadFile(page: import('@playwright/test').Page) {
 
 test.beforeEach(async ({ page }) => {
   await setupApiMocks(page);
-  await page.goto('/');
+  await page.goto('/upload');
 });
 
 test('Generate button shows loading state during upload', async ({ page }) => {
@@ -30,16 +30,20 @@ test('Generate button shows loading state during upload', async ({ page }) => {
 
 test('success message appears after generation completes', async ({ page }) => {
   await uploadFile(page);
-  await page.getByRole('button', { name: 'Generate Label Sheets' }).click();
-  await page.waitForResponse('**/upload');
+  await Promise.all([
+    page.waitForResponse('**/upload'),
+    page.getByRole('button', { name: 'Generate Label Sheets' }).click(),
+  ]);
   await expect(page.getByText(/Successfully processed/)).toBeVisible();
 });
 
 test('file selection is cleared after successful generation', async ({ page }) => {
   await uploadFile(page);
-  await expect(page.getByText('test.csv')).toBeVisible();
-  await page.getByRole('button', { name: 'Generate Label Sheets' }).click();
-  await page.waitForResponse('**/upload');
+  await expect(page.getByRole('button', { name: 'test.csv' })).toBeVisible();
+  await Promise.all([
+    page.waitForResponse('**/upload'),
+    page.getByRole('button', { name: 'Generate Label Sheets' }).click(),
+  ]);
   await expect(page.getByRole('button', { name: 'Browse Files' })).toBeVisible();
 });
 

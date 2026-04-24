@@ -3,7 +3,7 @@ import { setupApiMocks } from './fixtures/api-mocks';
 
 test.beforeEach(async ({ page }) => {
   await setupApiMocks(page);
-  await page.goto('/');
+  await page.goto('/upload');
 });
 
 test('sheet history table renders rows from GET /my-sheets', async ({ page }) => {
@@ -45,7 +45,9 @@ test('confirmed delete removes the row from the table', async ({ page }) => {
   page.on('dialog', async dialog => dialog.accept());
 
   await expect(page.getByText('inventory.csv')).toBeVisible();
-  await page.getByRole('button', { name: /Delete/i }).first().click();
-  await page.waitForResponse('**/delete-sheet/**');
+  await Promise.all([
+    page.waitForResponse('**/delete-sheet/**'),
+    page.getByRole('button', { name: /Delete/i }).first().click(),
+  ]);
   await expect(page.getByText('inventory.csv')).not.toBeVisible();
 });

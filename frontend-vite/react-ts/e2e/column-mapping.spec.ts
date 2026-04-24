@@ -4,7 +4,7 @@ import { VALID_CSV } from './fixtures/test-data';
 
 test.beforeEach(async ({ page }) => {
   await setupApiMocks(page);
-  await page.goto('/');
+  await page.goto('/upload');
 });
 
 test('barcode column input is visible with a default value', async ({ page }) => {

@@ -52,7 +52,7 @@ def mock_supabase(app):
 @pytest.fixture
 def mock_storage(mocker):
     return mocker.patch(
-        'services.storage_service.upload_zip_to_storage',
+        'services.label_service.upload_zip_to_storage',
         return_value={
             'success': True,
             'storage_path': 'test-user/test-sheet-id/labels.zip',

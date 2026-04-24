@@ -48,21 +48,23 @@ export async function setupApiMocks(page: Page, overrides: RouteOverrides = {}) 
     ...(overrides[key] ?? {}),
   });
 
+  await page.route('**/auth/status', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ authenticated: true }) });
+  });
+
   await page.route('**/my-sheets', async (route) => {
     const r = resolve('mySheets');
     await route.fulfill({ status: r.status, contentType: 'application/json', body: JSON.stringify(r.body) });
   });
 
   await page.route('**/upload', async (route) => {
+    if (route.request().method() !== 'POST') return route.continue();
     const r = resolve('upload');
-    if (r.status >= 400) {
-      await route.fulfill({ status: r.status, contentType: 'application/json', body: JSON.stringify(r.body) });
-    } else {
-      await route.fulfill({ status: r.status, contentType: 'application/json', body: JSON.stringify(r.body) });
-    }
+    await route.fulfill({ status: r.status, contentType: 'application/json', body: JSON.stringify(r.body) });
   });
 
   await page.route('**/preview', async (route) => {
+    if (route.request().method() !== 'POST') return route.continue();
     const r = resolve('preview');
     await route.fulfill({ status: r.status, contentType: 'application/json', body: JSON.stringify(r.body) });
   });
