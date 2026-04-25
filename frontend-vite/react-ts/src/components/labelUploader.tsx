@@ -4,6 +4,7 @@ import axios from 'axios';
 import {
   Upload, AlertCircle, CheckCircle2, Plus, X,
 } from 'lucide-react';
+import { usePostHog } from '@posthog/react';
 import LabelPreview from './LabelPreview';
 
 interface BackendUploadResponse {
@@ -24,6 +25,7 @@ interface PreviewData {
 }
 
 function LabelUploader() {
+  const posthog = usePostHog();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -111,7 +113,15 @@ function LabelUploader() {
       setProcessingStatus('Processing complete!');
       setUploadProgress(100);
       setSuccess(response.data.message);
-      console.log(`Total time: ${((Date.now() - startTime) / 1000).toFixed(2)}s`);
+      posthog.capture('label_generation_completed', {
+        duration_ms: Date.now() - startTime,
+        label_count: response.data.label_count,
+        sheet_count: response.data.sheet_count,
+        total_size_bytes: response.data.total_size,
+        template_id: selectedTemplate,
+        barcode_type: barcodeType,
+        file_size_bytes: file.size,
+      });
       setFile(null); setPreviewData(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       setTimeout(() => { setSuccess(''); setUploadProgress(0); setProcessingStatus(''); }, 5000);
