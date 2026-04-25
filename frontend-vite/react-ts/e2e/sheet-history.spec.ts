@@ -3,7 +3,7 @@ import { setupApiMocks } from './fixtures/api-mocks';
 
 test.beforeEach(async ({ page }) => {
   await setupApiMocks(page);
-  await page.goto('/upload');
+  await page.goto('/inventory');
 });
 
 test('sheet history table renders rows from GET /my-sheets', async ({ page }) => {
