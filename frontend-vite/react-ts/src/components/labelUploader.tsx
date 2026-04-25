@@ -1,10 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import type { ChangeEvent } from 'react';
 import axios from 'axios';
 import {
-  Upload, Download, Trash2, RefreshCw, FileSpreadsheet,
-  AlertCircle, CheckCircle2, Plus, X,
-  ChevronDown, ChevronRight, Search, Printer,
+  Upload, AlertCircle, CheckCircle2, Plus, X,
 } from 'lucide-react';
 import LabelPreview from './LabelPreview';
 
@@ -18,31 +16,6 @@ interface BackendUploadResponse {
   message: string;
 }
 
-interface UserSheet {
-  id: string;
-  original_filename: string;
-  label_count: number;
-  sheet_count: number;
-  total_size_bytes: number;
-  created_at: string;
-  template_id?: string;
-  barcode_type?: string;
-}
-
-interface LabelItem {
-  id: string;
-  user_sheet_id: string;
-  original_filename: string;
-  label_index: number;
-  sheet_number: number;
-  position_on_sheet: number;
-  barcode_value: string;
-  text_fields: { label: string; value: string }[];
-  barcode_type: string;
-  template_id: string;
-  created_at: string;
-}
-
 interface PreviewData {
   preview_pdf: string;
   label_count: number;
@@ -52,9 +25,7 @@ interface PreviewData {
 
 function LabelUploader() {
   const [file, setFile] = useState<File | null>(null);
-  const [userSheets, setUserSheets] = useState<UserSheet[]>([]);
   const [loading, setLoading] = useState(false);
-  const [fetchingSheets, setFetchingSheets] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -71,25 +42,6 @@ function LabelUploader() {
   const [barcodeType, setBarcodeType] = useState<'code128' | 'qr'>('code128');
   const [previewing, setPreviewing] = useState(false);
   const [previewData, setPreviewData] = useState<PreviewData | null>(null);
-
-  // Sheet expansion + selective download state
-  const [expandedSheetId, setExpandedSheetId] = useState<string | null>(null);
-  const [selectedSheets, setSelectedSheets] = useState<{ [sheetId: string]: Set<number> }>({});
-  const [singleSheetDownloadStates, setSingleSheetDownloadStates] = useState<{ [key: string]: 'idle' | 'downloading' }>({});
-  const [selectedDownloadStates, setSelectedDownloadStates] = useState<{ [sheetId: string]: 'idle' | 'downloading' }>({});
-
-  // History filter
-  const [filterFilename, setFilterFilename] = useState('');
-
-  // Label search state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<LabelItem[]>([]);
-  const [searchTotal, setSearchTotal] = useState(0);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchOffset, setSearchOffset] = useState(0);
-  const [reprintStates, setReprintStates] = useState<{ [labelId: string]: 'idle' | 'downloading' }>({});
-  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const SEARCH_LIMIT = 50;
 
   const templates = [
     { id: 'standard_20', name: 'Standard', desc: '20 labels per sheet', size: '1.75" x 1.8"', grid: '5 x 4', rows: 5, cols: 4, maxTextLines: 2 },
@@ -120,200 +72,6 @@ function LabelUploader() {
   };
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
-  const [sheetStates, setSheetStates] = useState<{
-    [sheetId: string]: {
-      downloadStatus: 'idle' | 'downloading' | 'downloaded';
-      deleteStatus: 'idle' | 'deleting';
-    }
-  }>(() => {
-    const saved = localStorage.getItem('sheetStates');
-    if (saved && saved !== 'undefined') {
-      try { return JSON.parse(saved); } catch { return {}; }
-    }
-    return {};
-  });
-
-  useEffect(() => { fetchUserSheets(); }, []);
-
-  useEffect(() => {
-    localStorage.setItem('sheetStates', JSON.stringify(sheetStates));
-  }, [sheetStates]);
-
-  const fetchUserSheets = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/my-sheets`, { withCredentials: true });
-      setUserSheets(response.data.sheets);
-      const currentIds = new Set(response.data.sheets.map((s: UserSheet) => s.id));
-      setSheetStates(prev => Object.fromEntries(Object.entries(prev).filter(([id]) => currentIds.has(id))));
-    } catch (err) {
-      console.error('Error fetching sheets:', err);
-      setError('Failed to load your saved sheets');
-    } finally {
-      setFetchingSheets(false);
-    }
-  };
-
-  // ── Blob download helper ──────────────────────────────────────────────
-  const triggerBlobDownload = (data: BlobPart, type: string, filename: string) => {
-    const blob = new Blob([data], { type });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-  };
-
-  // ── Full ZIP download ────────────────────────────────────────────────
-  const downloadSheet = async (userSheetId: string, filename: string) => {
-    setSheetStates(prev => ({ ...prev, [userSheetId]: { ...prev[userSheetId], downloadStatus: 'downloading' } }));
-    try {
-      const response = await axios.get(`${API_URL}/download-sheet/${userSheetId}`, {
-        withCredentials: true, responseType: 'blob',
-      });
-      triggerBlobDownload(response.data, 'application/zip', `${filename.split('.')[0]}_labels.zip`);
-      setSheetStates(prev => ({ ...prev, [userSheetId]: { ...prev[userSheetId], downloadStatus: 'downloaded' } }));
-    } catch {
-      setError('Failed to download sheet');
-      setTimeout(() => setError(''), 5000);
-      setSheetStates(prev => ({ ...prev, [userSheetId]: { ...prev[userSheetId], downloadStatus: 'idle' } }));
-    }
-  };
-
-  // ── Single sheet download ────────────────────────────────────────────
-  const downloadSingleSheet = async (userSheetId: string, sheetNumber: number, filename: string) => {
-    const key = `${userSheetId}_${sheetNumber}`;
-    setSingleSheetDownloadStates(prev => ({ ...prev, [key]: 'downloading' }));
-    try {
-      const response = await axios.get(
-        `${API_URL}/download-sheet/${userSheetId}/sheet/${sheetNumber}`,
-        { withCredentials: true, responseType: 'blob' },
-      );
-      triggerBlobDownload(response.data, 'application/pdf', `${filename.split('.')[0]}_sheet_${sheetNumber}.pdf`);
-    } catch {
-      setError('Failed to download sheet');
-      setTimeout(() => setError(''), 5000);
-    } finally {
-      setSingleSheetDownloadStates(prev => ({ ...prev, [key]: 'idle' }));
-    }
-  };
-
-  // ── Selected sheets download ─────────────────────────────────────────
-  const downloadSelectedSheets = async (userSheetId: string, filename: string) => {
-    const selected = selectedSheets[userSheetId];
-    if (!selected || selected.size === 0) return;
-    setSelectedDownloadStates(prev => ({ ...prev, [userSheetId]: 'downloading' }));
-    try {
-      const response = await axios.post(
-        `${API_URL}/download-sheet/${userSheetId}/selected`,
-        { sheet_numbers: Array.from(selected) },
-        { withCredentials: true, responseType: 'blob' },
-      );
-      triggerBlobDownload(response.data, 'application/zip', `${filename.split('.')[0]}_selected_sheets.zip`);
-    } catch {
-      setError('Failed to download selected sheets');
-      setTimeout(() => setError(''), 5000);
-    } finally {
-      setSelectedDownloadStates(prev => ({ ...prev, [userSheetId]: 'idle' }));
-    }
-  };
-
-  // ── Expand / collapse ────────────────────────────────────────────────
-  const toggleExpand = (sheetId: string) => {
-    if (expandedSheetId === sheetId) {
-      setExpandedSheetId(null);
-      setSelectedSheets(prev => { const n = { ...prev }; delete n[sheetId]; return n; });
-    } else {
-      setExpandedSheetId(sheetId);
-    }
-  };
-
-  const toggleSheetSelection = (sheetId: string, sheetNum: number) => {
-    setSelectedSheets(prev => {
-      const current = new Set(prev[sheetId] || []);
-      current.has(sheetNum) ? current.delete(sheetNum) : current.add(sheetNum);
-      return { ...prev, [sheetId]: current };
-    });
-  };
-
-  const getLabelRange = (sheet: UserSheet, sheetNum: number): string => {
-    if (!sheet.template_id) return '';
-    const tmpl = templates.find(t => t.id === sheet.template_id);
-    if (!tmpl) return '';
-    const lps = tmpl.rows * tmpl.cols;
-    const start = (sheetNum - 1) * lps + 1;
-    const end = Math.min(sheetNum * lps, sheet.label_count);
-    return `labels ${start}–${end}`;
-  };
-
-  // ── Label search ─────────────────────────────────────────────────────
-  const searchLabels = async (query: string, offset = 0) => {
-    if (!query.trim()) { setSearchResults([]); setSearchTotal(0); return; }
-    setSearchLoading(true);
-    try {
-      const response = await axios.get(`${API_URL}/labels/search`, {
-        params: { q: query, limit: SEARCH_LIMIT, offset },
-        withCredentials: true,
-      });
-      if (offset === 0) {
-        setSearchResults(response.data.results);
-      } else {
-        setSearchResults(prev => [...prev, ...response.data.results]);
-      }
-      setSearchTotal(response.data.total);
-      setSearchOffset(offset);
-    } catch {
-      setError('Label search failed');
-      setTimeout(() => setError(''), 5000);
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
-  const handleSearchInput = (value: string) => {
-    setSearchQuery(value);
-    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    if (!value.trim()) { setSearchResults([]); setSearchTotal(0); return; }
-    searchTimeoutRef.current = setTimeout(() => searchLabels(value.trim(), 0), 300);
-  };
-
-  // ── Reprint ──────────────────────────────────────────────────────────
-  const reprintLabel = async (labelId: string) => {
-    setReprintStates(prev => ({ ...prev, [labelId]: 'downloading' }));
-    try {
-      const response = await axios.get(`${API_URL}/labels/${labelId}/reprint`, {
-        withCredentials: true, responseType: 'blob',
-      });
-      triggerBlobDownload(response.data, 'application/pdf', `reprint_${labelId.slice(0, 8)}.pdf`);
-    } catch {
-      setError('Failed to generate reprint');
-      setTimeout(() => setError(''), 5000);
-    } finally {
-      setReprintStates(prev => ({ ...prev, [labelId]: 'idle' }));
-    }
-  };
-
-  // ── Delete ───────────────────────────────────────────────────────────
-  const deleteSheet = async (userSheetId: string) => {
-    if (!confirm('Are you sure you want to delete this sheet? This cannot be undone.')) return;
-    setSheetStates(prev => ({ ...prev, [userSheetId]: { ...prev[userSheetId], deleteStatus: 'deleting' } }));
-    try {
-      await axios.delete(`${API_URL}/delete-sheet/${userSheetId}`, { withCredentials: true });
-      setUserSheets(userSheets.filter(s => s.id !== userSheetId));
-      setSheetStates(prev => { const n = { ...prev }; delete n[userSheetId]; return n; });
-      if (expandedSheetId === userSheetId) setExpandedSheetId(null);
-      setSuccess('Sheet deleted successfully');
-      setTimeout(() => setSuccess(''), 3000);
-    } catch {
-      setError('Failed to delete sheet');
-      setTimeout(() => setError(''), 5000);
-      setSheetStates(prev => ({ ...prev, [userSheetId]: { ...prev[userSheetId], deleteStatus: 'idle' } }));
-    }
-  };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] || null;
@@ -353,7 +111,6 @@ function LabelUploader() {
       setProcessingStatus('Processing complete!');
       setUploadProgress(100);
       setSuccess(response.data.message);
-      await fetchUserSheets();
       console.log(`Total time: ${((Date.now() - startTime) / 1000).toFixed(2)}s`);
       setFile(null); setPreviewData(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -407,12 +164,6 @@ function LabelUploader() {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
-
-  const formatDate = (d: string) => new Date(d).toLocaleString();
-
-  const filteredSheets = filterFilename
-    ? userSheets.filter(s => s.original_filename.toLowerCase().includes(filterFilename.toLowerCase()))
-    : userSheets;
 
   return (
     <div className={`p-6 md:p-10 ${previewData ? 'flex gap-6 max-w-none' : 'max-w-5xl'}`}>
@@ -570,246 +321,6 @@ function LabelUploader() {
             <button onClick={handleUpload} disabled={loading || previewing || !file} className="h-11 px-6 bg-primary text-primary-foreground font-heading text-sm font-medium rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
               {loading ? 'Generating...' : 'Generate Label Sheets'}
             </button>
-          </div>
-        </div>
-
-        {/* Sheet History */}
-        <div className="bg-card border border-border rounded-[16px] shadow-sm overflow-hidden mb-8">
-          <div className="px-6 py-5 border-b border-border flex items-center justify-between gap-3">
-            <div>
-              <h2 className="font-heading text-base font-semibold text-foreground">Sheet History</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {fetchingSheets ? 'Loading...' : filterFilename ? `${filteredSheets.length} of ${userSheets.length} sheet${userSheets.length !== 1 ? 's' : ''}` : `${userSheets.length} generated sheet${userSheets.length !== 1 ? 's' : ''}`}
-              </p>
-            </div>
-            <div className="flex items-center gap-2 flex-1 max-w-xs">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Filter by filename..."
-                  value={filterFilename}
-                  onChange={e => setFilterFilename(e.target.value)}
-                  className="h-9 w-full pl-8 pr-3 rounded-[10px] border border-border bg-card text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-muted-foreground/50"
-                />
-              </div>
-              <button onClick={fetchUserSheets} className="p-2 rounded-[10px] text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer bg-transparent border-none flex-shrink-0" title="Refresh">
-                <RefreshCw className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {fetchingSheets ? (
-            <div className="px-6 py-12 flex flex-col items-center gap-3">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
-              <p className="text-sm text-muted-foreground">Loading your sheets...</p>
-            </div>
-          ) : filteredSheets.length > 0 ? (
-            <div className={userSheets.length > 10 ? 'max-h-[600px] overflow-y-auto' : ''}>
-              <table className="w-full">
-                <thead className="sticky top-0 z-10">
-                  <tr className="bg-secondary/50">
-                    <th className="px-4 py-3 w-6" />
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Filename</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Labels</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sheets</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Size</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden md:table-cell">Created</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {filteredSheets.map((sheet) => {
-                    const downloadStatus = sheetStates[sheet.id]?.downloadStatus || 'idle';
-                    const deleteStatus = sheetStates[sheet.id]?.deleteStatus || 'idle';
-                    const isExpanded = expandedSheetId === sheet.id;
-                    const numSelected = selectedSheets[sheet.id]?.size ?? 0;
-
-                    return (
-                      <>
-                        <tr key={sheet.id} className="hover:bg-secondary/30 transition-colors">
-                          {/* Expand chevron */}
-                          <td className="px-4 py-3.5">
-                            <button onClick={() => toggleExpand(sheet.id)} className="p-1 rounded-[6px] text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer bg-transparent border-none">
-                              {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-                            </button>
-                          </td>
-                          <td className="px-4 py-3.5 text-sm text-foreground font-medium">
-                            <div className="flex items-center gap-2.5">
-                              <FileSpreadsheet className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                              <span className="truncate max-w-[180px]">{sheet.original_filename}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3.5 text-sm text-muted-foreground">{sheet.label_count}</td>
-                          <td className="px-4 py-3.5 text-sm text-muted-foreground">{sheet.sheet_count}</td>
-                          <td className="px-4 py-3.5 text-sm text-muted-foreground">{formatFileSize(sheet.total_size_bytes)}</td>
-                          <td className="px-4 py-3.5 text-sm text-muted-foreground hidden md:table-cell">{formatDate(sheet.created_at)}</td>
-                          <td className="px-4 py-3.5 text-sm text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <button
-                                onClick={() => downloadSheet(sheet.id, sheet.original_filename)}
-                                disabled={downloadStatus === 'downloading' || deleteStatus === 'deleting'}
-                                title={downloadStatus === 'downloading' ? 'Downloading...' : downloadStatus === 'downloaded' ? 'Downloaded' : 'Download all'}
-                                className={`p-2 rounded-[10px] transition-colors cursor-pointer bg-transparent border-none ${downloadStatus === 'downloading' ? 'text-muted-foreground cursor-not-allowed' : downloadStatus === 'downloaded' ? 'text-success-foreground hover:bg-success' : 'text-primary hover:bg-primary/10'}`}
-                              >
-                                <Download className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => deleteSheet(sheet.id)}
-                                disabled={deleteStatus === 'deleting' || downloadStatus === 'downloading'}
-                                title={deleteStatus === 'deleting' ? 'Deleting...' : 'Delete'}
-                                className={`p-2 rounded-[10px] transition-colors cursor-pointer bg-transparent border-none ${deleteStatus === 'deleting' ? 'text-muted-foreground cursor-not-allowed' : 'text-destructive hover:bg-error'}`}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-
-                        {/* Expanded individual sheets */}
-                        {isExpanded && (
-                          <tr key={`${sheet.id}-expanded`}>
-                            <td colSpan={7} className="bg-secondary/20 border-b border-border">
-                              <div className="px-8 py-3">
-                                <div className="flex flex-col gap-0.5">
-                                  {Array.from({ length: sheet.sheet_count }, (_, i) => i + 1).map(sheetNum => {
-                                    const key = `${sheet.id}_${sheetNum}`;
-                                    const isDownloading = singleSheetDownloadStates[key] === 'downloading';
-                                    const isSelected = selectedSheets[sheet.id]?.has(sheetNum) ?? false;
-                                    const range = getLabelRange(sheet, sheetNum);
-                                    return (
-                                      <div key={sheetNum} className="flex items-center gap-3 py-1.5 px-3 rounded-[10px] hover:bg-secondary/40 transition-colors group">
-                                        <input
-                                          type="checkbox"
-                                          checked={isSelected}
-                                          onChange={() => toggleSheetSelection(sheet.id, sheetNum)}
-                                          className="w-3.5 h-3.5 rounded border-border accent-primary cursor-pointer"
-                                        />
-                                        <span className="text-xs text-foreground flex-1">
-                                          Sheet {sheetNum}
-                                          {range && <span className="text-muted-foreground ml-2">{range}</span>}
-                                        </span>
-                                        <button
-                                          onClick={() => downloadSingleSheet(sheet.id, sheetNum, sheet.original_filename)}
-                                          disabled={isDownloading}
-                                          title={isDownloading ? 'Downloading...' : 'Download PDF'}
-                                          className="p-1.5 rounded-[8px] text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer bg-transparent border-none opacity-0 group-hover:opacity-100 disabled:cursor-not-allowed"
-                                        >
-                                          {isDownloading
-                                            ? <div className="w-3.5 h-3.5 border border-primary border-t-transparent rounded-full animate-spin" />
-                                            : <Download className="w-3.5 h-3.5" />}
-                                        </button>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-
-                                {numSelected > 0 && (
-                                  <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between">
-                                    <span className="text-xs text-muted-foreground">{numSelected} sheet{numSelected !== 1 ? 's' : ''} selected</span>
-                                    <button
-                                      onClick={() => downloadSelectedSheets(sheet.id, sheet.original_filename)}
-                                      disabled={selectedDownloadStates[sheet.id] === 'downloading'}
-                                      className="h-8 px-4 bg-primary text-primary-foreground font-heading text-xs font-medium rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                                    >
-                                      {selectedDownloadStates[sheet.id] === 'downloading' ? 'Downloading...' : `Download Selected (${numSelected})`}
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="px-6 py-12 flex flex-col items-center gap-3 text-center">
-              <div className="w-12 h-12 rounded-[16px] bg-secondary flex items-center justify-center">
-                <FileSpreadsheet className="w-6 h-6 text-muted-foreground" />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {filterFilename ? 'No sheets match your filter.' : 'No sheets generated yet. Upload a file to get started.'}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Label Search */}
-        <div className="bg-card border border-border rounded-[16px] shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-border">
-            <h2 className="font-heading text-base font-semibold text-foreground">Label Search</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Find and reprint any label by barcode value</p>
-          </div>
-          <div className="px-6 py-5">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <input
-                type="text"
-                placeholder="Search by barcode value..."
-                value={searchQuery}
-                onChange={e => handleSearchInput(e.target.value)}
-                className="h-10 w-full pl-10 pr-4 rounded-[10px] border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-muted-foreground/50"
-              />
-            </div>
-
-            {searchLoading && (
-              <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" />
-                Searching...
-              </div>
-            )}
-
-            {!searchLoading && searchQuery && searchResults.length === 0 && (
-              <p className="mt-4 text-sm text-muted-foreground text-center py-6">No labels found for "{searchQuery}"</p>
-            )}
-
-            {searchResults.length > 0 && (
-              <div className="mt-4 flex flex-col gap-0.5">
-                {searchResults.map(item => (
-                  <div key={item.id} className="flex items-center gap-3 py-2.5 px-3 rounded-[10px] hover:bg-secondary/30 transition-colors group">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{item.barcode_value}</p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {item.text_fields.map(tf => `${tf.label}: ${tf.value}`).join(' · ')}
-                        {item.text_fields.length > 0 && ' · '}
-                        {item.original_filename} · Sheet {item.sheet_number}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => reprintLabel(item.id)}
-                      disabled={reprintStates[item.id] === 'downloading'}
-                      title="Reprint this label"
-                      className="flex items-center gap-1.5 h-8 px-3 rounded-[8px] text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer bg-transparent border border-border hover:border-primary/30 opacity-0 group-hover:opacity-100 disabled:cursor-not-allowed flex-shrink-0"
-                    >
-                      {reprintStates[item.id] === 'downloading'
-                        ? <div className="w-3.5 h-3.5 border border-primary border-t-transparent rounded-full animate-spin" />
-                        : <Printer className="w-3.5 h-3.5" />}
-                      Reprint
-                    </button>
-                  </div>
-                ))}
-
-                {searchResults.length < searchTotal && (
-                  <div className="mt-3 flex justify-center">
-                    <button
-                      onClick={() => searchLabels(searchQuery, searchOffset + SEARCH_LIMIT)}
-                      disabled={searchLoading}
-                      className="h-8 px-4 bg-card text-foreground font-heading text-xs font-medium rounded-full border border-border hover:bg-secondary transition-colors cursor-pointer disabled:opacity-50"
-                    >
-                      Load more ({searchTotal - searchResults.length} remaining)
-                    </button>
-                  </div>
-                )}
-
-                <p className="text-xs text-muted-foreground text-center mt-2">
-                  Showing {searchResults.length} of {searchTotal} result{searchTotal !== 1 ? 's' : ''}
-                </p>
-              </div>
-            )}
           </div>
         </div>
 

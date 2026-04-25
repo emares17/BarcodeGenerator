@@ -5,6 +5,7 @@ import {
   ScanBarcode,
   LayoutDashboard,
   Upload,
+  Package,
   HelpCircle,
   LogOut,
   User,
@@ -66,6 +67,7 @@ function Sidebar({ activeOverride }: SidebarProps) {
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { label: 'Upload Labels', icon: Upload, path: '/upload' },
+    { label: 'Inventory', icon: Package, path: '/inventory' },
     { label: 'Help', icon: HelpCircle, path: '/help' },
   ];
 
