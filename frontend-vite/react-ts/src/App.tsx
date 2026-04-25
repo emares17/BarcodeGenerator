@@ -1,4 +1,6 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { usePostHog } from '@posthog/react';
 import Login from './components/login';
 import LabelUploader from './components/labelUploader';
 import Sidebar from './components/Sidebar';
@@ -8,6 +10,17 @@ import Help from './components/help';
 import SignUp from './components/signup';
 import LandingPage from './pages/LandingPage';
 import Inventory from './components/Inventory';
+
+function PageViewTracker() {
+  const location = useLocation();
+  const posthog = usePostHog();
+
+  useEffect(() => {
+    posthog.capture('$pageview', { $current_url: window.location.href });
+  }, [location.pathname]);
+
+  return null;
+}
 
 function UploadPage() {
   return (
@@ -34,6 +47,7 @@ function InventoryPage() {
 function App() {
   return (
     <Router>
+      <PageViewTracker />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
