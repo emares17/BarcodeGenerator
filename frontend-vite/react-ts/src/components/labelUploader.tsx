@@ -579,7 +579,7 @@ function LabelUploader() {
             <div>
               <h2 className="font-heading text-base font-semibold text-foreground">Sheet History</h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {fetchingSheets ? 'Loading...' : `${filteredSheets.length} of ${userSheets.length} sheet${userSheets.length !== 1 ? 's' : ''}`}
+                {fetchingSheets ? 'Loading...' : filterFilename ? `${filteredSheets.length} of ${userSheets.length} sheet${userSheets.length !== 1 ? 's' : ''}` : `${userSheets.length} generated sheet${userSheets.length !== 1 ? 's' : ''}`}
               </p>
             </div>
             <div className="flex items-center gap-2 flex-1 max-w-xs">
