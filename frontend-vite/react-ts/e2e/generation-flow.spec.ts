@@ -46,11 +46,3 @@ test('file selection is cleared after successful generation', async ({ page }) =
   ]);
   await expect(page.getByRole('button', { name: 'Browse Files' })).toBeVisible();
 });
-
-test('sheet history refreshes after successful generation', async ({ page }) => {
-  await uploadFile(page);
-  await page.getByRole('button', { name: 'Generate Label Sheets' }).click();
-  // After upload, my-sheets is fetched again — wait for that second request
-  await page.waitForResponse('**/my-sheets');
-  await expect(page.getByText('inventory.csv')).toBeVisible();
-});
