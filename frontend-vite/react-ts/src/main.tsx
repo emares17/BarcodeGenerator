@@ -5,8 +5,8 @@ import App from './App.tsx'
 import posthog from 'posthog-js'
 import { PostHogProvider } from '@posthog/react'
 
-posthog.init(import.meta.env.VITE_PUBLIC_POSTHOG_KEY, {
-  api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+posthog.init('phc_of66gtPFx6ymHiDUF4BaNbYav4TTdTFHSx7sYFgcDCed', {
+  api_host: 'https://us.i.posthog.com',
   defaults: '2026-01-30',
 })
 
