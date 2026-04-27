@@ -24,6 +24,8 @@ interface PreviewData {
   labels_on_first_sheet: number;
 }
 
+const MAX_FILE_SIZE = 50 * 1024 * 1024
+
 function LabelUploader() {
   const posthog = usePostHog();
   const [file, setFile] = useState<File | null>(null);
@@ -91,7 +93,7 @@ function LabelUploader() {
   const handleUpload = async () => {
     const startTime = Date.now();
     if (!file) { setError('Please select a file first.'); return; }
-    if (file.size > 50 * 1024 * 1024) { setError('File too large. Maximum size is 50MB.'); return; }
+    if (file.size > MAX_FILE_SIZE) { setError('File too large. Maximum size is 50MB.'); return; }
     const allowedTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
     if (!allowedTypes.includes(file.type)) { setError('Invalid file type. Please upload a CSV or Excel file.'); return; }
 
@@ -144,7 +146,7 @@ function LabelUploader() {
 
   const handlePreview = async () => {
     if (!file) { setError('Please select a file first.'); return; }
-    if (file.size > 50 * 1024 * 1024) { setError('File too large. Maximum size is 50MB.'); return; }
+    if (file.size > MAX_FILE_SIZE) { setError('File too large. Maximum size is 50MB.'); return; }
     const allowedTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
     if (!allowedTypes.includes(file.type)) { setError('Invalid file type. Please upload a CSV or Excel file.'); return; }
 

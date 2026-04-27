@@ -22,11 +22,12 @@ def upload_file():
         file = request.files['file']
         user_id = request.user_id
         
-        file_size_mb = len(file.read()) / (1024 * 1024)
+        file_size_bytes = len(file.read()) 
         file.seek(0)  # Reset file pointer
-        if file_size_mb > 25:  # 25MB limit for team usage
-            logger.warning("File size was too large, exceeded the maximum 25MB.")
-            return jsonify({'error': 'File too large. Maximum 25MB.'}), 400
+        if file_size_bytes > current_app.config['MAX_FILE_SIZE']:  
+            max_mb = current_app.config['MAX_FILE_SIZE'] // (1024 * 1024)
+            logger.warning(f"File size exceeded the maximum {max_mb}MB.")
+            return jsonify({'error': f'File too large. Maximum {max_mb}MB.'}), 400
         
         # Validate file
         is_valid, result = validate_file_security(file)
@@ -96,10 +97,12 @@ def preview_labels():
         file = request.files['file']
         user_id = request.user_id
 
-        file_size_mb = len(file.read()) / (1024 * 1024)
+        file_size_bytes = len(file.read())
         file.seek(0)
-        if file_size_mb > 25:
-            return jsonify({'error': 'File too large. Maximum 25MB.'}), 400
+        if file_size_bytes > current_app.config['MAX_FILE_SIZE']:
+            max_mb = current_app.config['MAX_FILE_SIZE'] // (1024 * 1024)
+            logger.warning(f"File size exceeded the maximum {max_mb}MB.")
+            return jsonify({'error': f'File too large. Maximum {max_mb}MB.'}), 400
 
         is_valid, result = validate_file_security(file)
         if not is_valid:

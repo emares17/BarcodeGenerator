@@ -160,7 +160,7 @@ class ProductionConfig(Config):
     }
 
     # Stricter production settings
-    MAX_FILE_SIZE = 25 * 1024 * 1024  # 25MB in production
+    MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB in production
     MAX_LABELS = 5000  # Lower limit in production
 
 

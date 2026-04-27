@@ -9,7 +9,7 @@ import os
 def create_app(config_name='development'):
     """Enhanced application factory with security"""
     app = Flask(__name__)
-    app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024 # 25MB limit
+    app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024 # 50MB limit
 
     @app.errorhandler(500)
     def internal_error(error):
