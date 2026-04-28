@@ -6,6 +6,9 @@ import {
 } from 'lucide-react';
 import { usePostHog } from '@posthog/react';
 import LabelPreview from './LabelPreview';
+import FieldHelp from './FieldHelp';
+import ColumnMappingTour from './ColumnMappingTour';
+import { BARCODE_COLUMN_HELP, TEXT_FIELDS_HELP, HEADER_ROW_HELP } from './columnMappingHelp';
 
 interface BackendUploadResponse {
   success: boolean;
@@ -39,8 +42,7 @@ function LabelUploader() {
   const [selectedTemplate, setSelectedTemplate] = useState('standard_20');
   const [barcodeColumn, setBarcodeColumn] = useState(1);
   const [textColumns, setTextColumns] = useState<{ column: number; label: string }[]>([
-    { column: 1, label: 'Location' },
-    { column: 4, label: 'Unit' },
+    { column: 1, label: '' },
   ]);
   const [hasHeaderRow, setHasHeaderRow] = useState(false);
   const [barcodeType, setBarcodeType] = useState<'code128' | 'qr'>('code128');
@@ -287,12 +289,13 @@ function LabelUploader() {
             <h3 className="font-heading text-sm font-semibold text-foreground mb-1">Column Mapping</h3>
             <p className="text-xs text-muted-foreground mb-4">Tell us which columns in your file contain the barcode value and text to display</p>
             <div className="mb-4">
-              <label className="block text-xs font-medium text-foreground mb-1.5">Barcode Column <span className="text-destructive">*</span></label>
+              <label className="flex items-center gap-1.5 text-xs font-medium text-foreground mb-1.5">Barcode Column <span className="text-destructive">*</span> <FieldHelp {...BARCODE_COLUMN_HELP} fieldName="barcode_column" /></label>
               <input type="number" min={1} max={26} value={barcodeColumn} onChange={(e) => setBarcodeColumn(Math.max(1, Math.min(26, parseInt(e.target.value) || 1)))} className="h-9 w-20 px-3 rounded-[10px] border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary" />
               <span className="text-xs text-muted-foreground ml-2">Which column has the barcode value?</span>
             </div>
             <div className="mb-3">
-              <label className="block text-xs font-medium text-foreground mb-1.5">Text Fields {currentTemplate.maxTextLines > 0 && <span className="text-muted-foreground font-normal">(max {currentTemplate.maxTextLines})</span>}</label>
+              <label className="flex items-center gap-1.5 text-xs font-medium text-foreground mb-1">Text Fields {currentTemplate.maxTextLines > 0 && <span className="text-muted-foreground font-normal">(max {currentTemplate.maxTextLines})</span>} <FieldHelp {...TEXT_FIELDS_HELP} fieldName="text_fields" /></label>
+              <p className="text-xs text-muted-foreground mb-2">Optional — adds lines of text to each label. Leave empty for barcode-only labels.</p>
               <div className="flex flex-col gap-2">
                 {textColumns.map((tc, index) => (
                   <div key={index} className="flex items-center gap-2">
@@ -322,6 +325,7 @@ function LabelUploader() {
               </button>
               <span className="text-xs text-foreground">First row is headers</span>
               <span className="text-xs text-muted-foreground">(skip first row when processing)</span>
+              <FieldHelp {...HEADER_ROW_HELP} fieldName="header_row" />
             </div>
           </div>
 
@@ -337,6 +341,8 @@ function LabelUploader() {
         </div>
 
       </div>
+
+      <ColumnMappingTour />
 
       {/* Preview Panel */}
       {previewData && (
