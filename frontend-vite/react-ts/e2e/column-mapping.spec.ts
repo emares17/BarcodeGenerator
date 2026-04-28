@@ -14,15 +14,13 @@ test('barcode column input is visible with a default value', async ({ page }) =>
   expect(parseInt(value)).toBeGreaterThanOrEqual(1);
 });
 
-test('two text field rows are shown by default', async ({ page }) => {
+test('one text field row is shown by default', async ({ page }) => {
   const removeButtons = page.locator('button[title="Remove field"]');
-  await expect(removeButtons).toHaveCount(2);
+  await expect(removeButtons).toHaveCount(1);
 });
 
 test('Add text field button adds a new row for standard_20 template', async ({ page }) => {
-  // standard_20 has max 2 — first remove one to make room
-  const removeButtons = page.locator('button[title="Remove field"]');
-  await removeButtons.first().click();
+  // standard_20 has max 2 — default starts with 1, so Add is already visible
   await page.getByRole('button', { name: /Add text field/ }).click();
   await expect(page.locator('button[title="Remove field"]')).toHaveCount(2);
 });
@@ -30,7 +28,7 @@ test('Add text field button adds a new row for standard_20 template', async ({ p
 test('remove button collapses a text field row', async ({ page }) => {
   const removeButtons = page.locator('button[title="Remove field"]');
   await removeButtons.first().click();
-  await expect(page.locator('button[title="Remove field"]')).toHaveCount(1);
+  await expect(page.locator('button[title="Remove field"]')).toHaveCount(0);
 });
 
 test('header row toggle changes label text', async ({ page }) => {
