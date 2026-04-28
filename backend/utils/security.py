@@ -1,6 +1,5 @@
 import os
 import mimetypes
-import mimetypes 
 from werkzeug.utils import secure_filename
 from flask import current_app, request
 from functools import wraps
@@ -40,15 +39,16 @@ def validate_file_security(file):
         allowed_str = ', '.join(allowed_extensions)
         return False, f"File type not allowed. Allowed: {allowed_str}"
     
-    # MIME type validation
-    allowed_mimes = {
-        'text/csv', 'application/csv',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    # MIME type validation — use hardcoded map rather than mimetypes.guess_type,
+    # which returns None for .xlsx on minimal Linux servers (e.g. Railway).
+    ext_mime_map = {
+        '.csv': {'text/csv', 'application/csv'},
+        '.xlsx': {'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'},
+        '.xls': {'application/vnd.ms-excel'},
     }
-    
+    allowed_mimes = ext_mime_map.get(ext, set())
     mimetype, _ = mimetypes.guess_type(filename)
-    if mimetype not in allowed_mimes:
+    if mimetype is not None and mimetype not in allowed_mimes:
         return False, "Invalid file format detected"
     
     # Content validation (magic bytes)
