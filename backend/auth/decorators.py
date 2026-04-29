@@ -67,6 +67,12 @@ def get_current_user():
     if 'user_id' not in session:
         return None
     
+    if 'access_token_expires' in session:
+        expires_at = datetime.fromisoformat(session['access_token_expires'])
+        if datetime.utcnow() > expires_at:
+            if not refresh_access_token():
+                return None
+            
     return {
         'user_id': session.get('user_id'),
         'user_email': session.get('user_email'),
