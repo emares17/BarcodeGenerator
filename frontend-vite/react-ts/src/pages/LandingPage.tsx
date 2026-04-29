@@ -6,10 +6,41 @@ import {
   Upload,
   Cpu,
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import BarcodeWidget from '../components/BarcodeWidget';
 import Navbar from '../components/Navbar';
 
 function LandingPage() {
+  const [authLoading, setAuthLoading] = useState(true);
+  const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/auth/status`, { withCredentials: true });
+        if (response.data.authenticated) {
+          navigate('/dashboard', { replace: true });
+        } else {
+          setAuthLoading(false);
+        }
+      } catch {
+        setAuthLoading(false);
+      }
+    };
+    checkAuthStatus();
+  }, []);
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
