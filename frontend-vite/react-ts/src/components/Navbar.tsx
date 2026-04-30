@@ -41,9 +41,6 @@ function Navbar() {
 
       {/* Desktop Nav */}
       <div className="hidden md:flex items-center gap-8">
-        <a href="/#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Features</a>
-        <a href="/#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">How It Works</a>
-        <a href="/help" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Help</a>
         {isAuthenticated ? (
           <>
             <a href="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Dashboard</a>
@@ -51,6 +48,9 @@ function Navbar() {
           </>
         ) : (
           <>
+            <a href="/#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Features</a>
+            <a href="/#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">How It Works</a>
+            <a href="/help" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Help</a>
             <a href="/login" className="text-sm font-medium text-foreground hover:text-foreground/80 transition-colors">Log in</a>
             <a href="/signup" className="inline-flex items-center justify-center h-10 px-4 bg-primary text-primary-foreground font-heading text-sm font-medium rounded-full hover:bg-primary/90 transition-colors">
               Get Started
