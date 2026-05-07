@@ -121,9 +121,11 @@ def delete_user_sheet(user_sheet_id, user_id):
 
     sheet_response = supabase_admin.table('user_sheets').select('user_id').eq(
         'id', user_sheet_id
-    ).single().execute()
+    ).maybe_single().execute()
 
-    if not sheet_response.data or sheet_response.data['user_id'] != user_id:
+    if not sheet_response.data:
+        raise LookupError('Sheet not found')
+    if sheet_response.data['user_id'] != user_id:
         raise PermissionError('Access denied')
 
     files_response = supabase_admin.table('sheet_files').select(

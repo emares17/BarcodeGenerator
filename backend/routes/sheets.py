@@ -84,6 +84,10 @@ def delete_sheet(user_sheet_id):
     try:
         delete_user_sheet(user_sheet_id, request.user_id)
         return jsonify({'success': True, 'message': 'Sheet deleted successfully'})
+    except LookupError:
+        return jsonify({'error': 'Sheet not found'}), 404
+    except PermissionError:
+        return jsonify({'error': 'Access denied'}), 403
     except Exception as e:
         current_app.logger.error("Error deleting sheet %s: %s", user_sheet_id, e)
-        return jsonify({'error': f'Failed to delete sheet: {str(e)}'}), 500
+        return jsonify({'error': 'Failed to delete sheet'}), 500

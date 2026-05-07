@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import {
   Download, Trash2, RefreshCw, FileSpreadsheet,
@@ -153,7 +153,7 @@ function Inventory() {
     setSheetStates(prev => ({ ...prev, [_userSheetId]: { ...prev[_userSheetId], deleteStatus: 'deleting' } }));
     try {
       await axios.delete(`${API_URL}/delete-sheet/${_userSheetId}`, { withCredentials: true });
-      setUserSheets(userSheets.filter(s => s.id !== _userSheetId));
+      setUserSheets(prev => prev.filter(s => s.id !== _userSheetId));
       setSheetStates(prev => { const n = { ...prev }; delete n[_userSheetId]; return n; });
       if (expandedSheetId === _userSheetId) setExpandedSheetId(null);
     } catch {
@@ -413,8 +413,8 @@ function Inventory() {
                   const numSelected = selectedSheets[sheet.id]?.size ?? 0;
 
                   return (
-                    <>
-                      <tr key={sheet.id} className="hover:bg-secondary/30 transition-colors">
+                    <React.Fragment key={sheet.id}>
+                      <tr className="hover:bg-secondary/30 transition-colors">
                         <td className="px-4 py-3.5">
                           <button
                             onClick={() => toggleExpand(sheet.id)}
@@ -514,7 +514,7 @@ function Inventory() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </tbody>
