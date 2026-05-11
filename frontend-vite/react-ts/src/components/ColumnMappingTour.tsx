@@ -6,7 +6,7 @@ import { BARCODE_COLUMN_HELP, TEXT_FIELDS_HELP, HEADER_ROW_HELP } from './column
 import type { HelpContent } from './columnMappingHelp';
 
 const TOUR_KEY = 'lgu_col_map_tour_v1';
-const ALLOWED_ROUTES = ['/dashboard', '/upload'];
+const ALLOWED_ROUTES = ['/upload'];
 
 const steps: HelpContent[] = [
   {

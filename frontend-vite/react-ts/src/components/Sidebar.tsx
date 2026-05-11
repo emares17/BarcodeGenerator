@@ -4,7 +4,7 @@ import axios from 'axios';
 import {
   ScanBarcode,
   LayoutDashboard,
-  Upload,
+  Plus,
   Package,
   HelpCircle,
   LogOut,
@@ -20,25 +20,10 @@ interface SidebarProps {
 function Sidebar({ activeOverride }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [userEmail, setUserEmail] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   const currentPath = activeOverride || location.pathname;
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get(`${API_URL}/auth/status`, { withCredentials: true });
-        if (res.data.authenticated && res.data.email) {
-          setUserEmail(res.data.email);
-        }
-      } catch {
-        // ignore
-      }
-    };
-    fetchUser();
-  }, []);
 
   // Close drawer on route change
   useEffect(() => {
@@ -66,7 +51,7 @@ function Sidebar({ activeOverride }: SidebarProps) {
 
   const navItems = [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { label: 'Upload Labels', icon: Upload, path: '/upload' },
+    { label: 'Create Labels', icon: Plus, path: '/upload' },
     { label: 'Inventory', icon: Package, path: '/inventory' },
     { label: 'Help', icon: HelpCircle, path: '/help' },
   ];
@@ -105,7 +90,7 @@ function Sidebar({ activeOverride }: SidebarProps) {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground truncate">
-              {userEmail || 'User'}
+              User
             </p>
           </div>
           <button

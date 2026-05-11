@@ -22,6 +22,17 @@ function PageViewTracker() {
   return null;
 }
 
+function DashboardPage() {
+  return (
+    <div className="flex flex-col md:flex-row min-h-screen bg-background">
+      <Sidebar />
+      <main className="flex-1 min-w-0">
+        <Dashboard />
+      </main>
+    </div>
+  );
+}
+
 function UploadPage() {
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-background">
@@ -55,7 +66,7 @@ function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <DashboardPage />
             </ProtectedRoute>
           }
         />

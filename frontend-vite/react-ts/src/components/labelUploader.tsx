@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
 import type { ChangeEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
-  Upload, AlertCircle, CheckCircle2, Plus, X,
+  Upload, AlertCircle, CheckCircle2, Plus, X, ArrowRight,
 } from 'lucide-react';
 import { usePostHog } from '@posthog/react';
 import LabelPreview from './LabelPreview';
@@ -30,6 +31,7 @@ interface PreviewData {
 const MAX_FILE_SIZE = 50 * 1024 * 1024
 
 function LabelUploader() {
+  const navigate = useNavigate();
   const posthog = usePostHog();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -128,7 +130,7 @@ function LabelUploader() {
       });
       setFile(null); setPreviewData(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
-      setTimeout(() => { setSuccess(''); setUploadProgress(0); setProcessingStatus(''); }, 5000);
+      setUploadProgress(0); setProcessingStatus('');
     } catch (err) {
       setUploadProgress(0); setProcessingStatus('');
       if (axios.isAxiosError(err)) {
@@ -237,9 +239,17 @@ function LabelUploader() {
             )}
 
             {success && (
-              <div className="mt-4 flex items-start gap-3 p-3 bg-success rounded-[12px]">
-                <CheckCircle2 className="w-4 h-4 text-success-foreground mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-success-foreground">{success}</p>
+              <div className="mt-4 flex items-start justify-between gap-3 p-3 bg-success rounded-[12px]">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="w-4 h-4 text-success-foreground mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-success-foreground">{success}</p>
+                </div>
+                <button
+                  onClick={() => navigate('/inventory')}
+                  className="flex-shrink-0 flex items-center gap-1.5 text-sm font-medium text-success-foreground hover:opacity-80 transition-opacity bg-transparent border-none cursor-pointer whitespace-nowrap"
+                >
+                  View in Inventory <ArrowRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             )}
           </div>
